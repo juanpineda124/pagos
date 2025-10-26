@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Artículos - Listas Multiples</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        select, button {
+            margin: 5px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid #aaa;
+            font-size: 14px;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background: #007bff;
+            color: white;
+        }
+
+        input[type="text"], input[type="number"], input[type="date"], select.estado {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 6px;
+        }
+
+        #resumen {
+            font-weight: bold;
+            font-size: 1.1em;
+            text-align: right;
+            margin-top: 10px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+
+        .acciones button {
+            margin: 2px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>📦 Registro de Artículos</h1>
+
+<div style="text-align:center;">
+    <label for="listaSelect">Seleccionar lista:</label>
+    <select id="listaSelect" onchange="cambiarLista()"></select>
+    <button onclick="nuevaLista()">➕ Nueva Lista</button>
+</div>
+
+<table id="tabla">
+    <thead>
+        <tr>
+            <th>Artículo</th>
+            <th>Cantidad</th>
+            <th>Precio Unitario ($)</th>
+            <th>Total ($)</th>
+            <th>Pago ($)</th>
+            <th>Fecha de Pago</th>
+            <th>Deuda ($)</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody id="tablaBody"></tbody>
+</table>
+
+<div style="margin-bottom: 10px;">
+    <button onclick="agregarFila()">➕ Agregar fila</button>
+    <button onclick="guardarDatos()">💾 Guardar</button>
+    <button onclick="borrarDatos()">🗑️ Borrar lista</button>
+</div>
+
+<div id="resumen">
+    💰 Total General: $0 &nbsp;&nbsp;|&nbsp;&nbsp;
+    💵 Total Pagos: $0 &nbsp;&nbsp;|&nbsp;&nbsp;
+    ❗ Total Deuda: $0
+</div>
+
+<script>
+    const tablaBody = document.getElementById("tablaBody");
+    const resumen = document.getElementById("resumen");
+    const listaSelect = document.getElementById("listaSelect");
+
+    let listas = JSON.parse(localStorage.getItem("listasNombres")) || ["Lista 1"];
+    let listaActual = localStorage.getItem("listaActual") || "Lista 1";
+
+    // Inicializa el menú de listas
+    function cargarListas() {
+        listaSelect.innerHTML = "";
+        listas.forEach(nombre => {
+            const opt = document.createElement("option");
+            opt.value = nombre;
+            opt.textContent = nombre;
+            if (nombre === listaActual) opt.selected = true;
+            listaSelect.appendChild(opt);
+        });
+        cargarDatos();
+    }
+
+    function nuevaLista() {
+        const nombre = prompt("Nombre de la nueva lista:");
+        if (nombre && !listas.includes(nombre)) {
+            listas.push(nombre);
+            localStorage.setItem("listasNombres", JSON.stringify(listas));
+            listaActual = nombre;
+            localStorage.setItem("listaActual", listaActual);
+            cargarListas();
+        } else if (listas.includes(nombre)) {
+            alert("❗ Esa lista ya existe.");
+        }
+    }
+
+    function cambiarLista() {
+        listaActual = listaSelect.value;
+        localStorage.setItem("listaActual", listaActual);
+        cargarDatos();
+    }
+
+    function agregarFila(data = {}) {
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+            <td><input type="text" value="${data.articulo || ''}" onchange="actualizarTotales()"></td>
+            <td><input type="number" value="${data.cantidad || 0}" min="0" onchange="actualizarTotales()"></td>
+            <td><input type="number" value="${data.precio || 0}" min="0" onchange="actualizarTotales()"></td>
+            <td class="total">$0</td>
+            <td><input type="number" value="${data.pago || 0}" min="0" onchange="actualizarTotales()"></td>
+            <td><input type="date" value="${data.fecha || ''}" onchange="actualizarTotales()"></td>
+            <td class="deuda">$0</td>
+            <td>
+                <select class="estado">
+                    <option ${data.estado === "Pagado" ? "selected" : ""}>Pagado</option>
+                    <option ${data.estado === "No Pagado" ? "selected" : ""}>No Pagado</option>
+                </select>
+            </td>
+            <td class="acciones"><button onclick="eliminarFila(this)">❌</button></td>
+        `;
+        tablaBody.appendChild(fila);
+        actualizarTotales();
+    }
+
+    function eliminarFila(boton) {
+        boton.closest("tr").remove();
+        actualizarTotales();
+    }
+
+    function actualizarTotales() {
+        let totalGeneral = 0;
+        let totalPagos = 0;
+        let totalDeuda = 0;
+
+        const filas = tablaBody.querySelectorAll("tr");
+        filas.forEach(fila => {
+            const cantidad = parseFloat(fila.children[1].children[0].value) || 0;
+            const precio = parseFloat(fila.children[2].children[0].value) || 0;
+            const pago = parseFloat(fila.children[4].children[0].value) || 0;
+
+            const total = cantidad * precio;
+            const deuda = total - pago;
+
+            fila.children[3].textContent = `$${total.toFixed(2)}`;
+            fila.children[6].textContent = `$${deuda.toFixed(2)}`;
+
+            totalGeneral += total;
+            totalPagos += pago;
+            totalDeuda += deuda;
+        });
+
+        resumen.innerHTML = `
+            💰 Total General: $${totalGeneral.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp;
+            💵 Total Pagos: $${totalPagos.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp;
+            ❗ Total Deuda: $${totalDeuda.toFixed(2)}
+        `;
+    }
+
+    function guardarDatos() {
+        const filas = tablaBody.querySelectorAll("tr");
+        const datos = [];
+
+        filas.forEach(fila => {
+            datos.push({
+                articulo: fila.children[0].children[0].value,
+                cantidad: fila.children[1].children[0].value,
+                precio: fila.children[2].children[0].value,
+                pago: fila.children[4].children[0].value,
+                fecha: fila.children[5].children[0].value,
+                estado: fila.children[7].children[0].value
+            });
+        });
+
+        localStorage.setItem("registroArticulos_" + listaActual, JSON.stringify(datos));
+        alert("✅ Datos guardados en " + listaActual);
+    }
+
+    function cargarDatos() {
+        tablaBody.innerHTML = "";
+        const datos = JSON.parse(localStorage.getItem("registroArticulos_" + listaActual)) || [];
+        datos.forEach(fila => agregarFila(fila));
+        actualizarTotales();
+    }
+
+    function borrarDatos() {
+        if (confirm("¿Seguro que deseas borrar todos los registros de " + listaActual + "?")) {
+            localStorage.removeItem("registroArticulos_" + listaActual);
+            tablaBody.innerHTML = "";
+            actualizarTotales();
+        }
+    }
+
+    // Inicializar
+    cargarListas();
+</script>
+
+</body>
+</html>

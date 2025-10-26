@@ -43,6 +43,7 @@
             margin-top: 15px;
             background: white;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            table-layout: fixed; /* 🔹 Para respetar los anchos */
         }
 
         th,
@@ -51,6 +52,19 @@
             padding: 8px;
             text-align: center;
             vertical-align: middle;
+            word-wrap: break-word;
+        }
+
+        /* 📏 Columna de Foto más angosta */
+        th:first-child,
+        td:first-child {
+            width: 60px;
+        }
+
+        /* 📏 Columna de Álbum más ancha */
+        th:nth-child(2),
+        td:nth-child(2) {
+            width: 250px; /* 🔹 Ancho aumentado */
         }
 
         th {
@@ -82,7 +96,7 @@
             margin: 2px;
         }
 
-        /* 🔹 Imagen más pequeña y con borde */
+        /* 🔹 Imagen más pequeña */
         img.preview {
             width: 40px;
             height: 40px;
@@ -99,61 +113,51 @@
             transform: scale(1.3);
         }
 
-        img.preview {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 4px;
-    display: block;
-    margin: 5px auto 0;
-    cursor: pointer;
-}
+        /* 🔍 Modal para ver imagen en grande */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
 
-/* 🔍 Modal para ver imagen en grande */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
+        .modal-content {
+            background: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
 
-.modal-content {
-    background: #fff;
-    padding: 15px;
-    border-radius: 10px;
-    text-align: center;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-}
+        .modal-img {
+            max-width: 90vw;
+            max-height: 70vh;
+            border-radius: 8px;
+        }
 
-.modal-img {
-    max-width: 90vw;
-    max-height: 70vh;
-    border-radius: 8px;
-}
+        .modal-buttons {
+            margin-top: 10px;
+        }
 
-.modal-buttons {
-    margin-top: 10px;
-}
+        .modal-buttons button {
+            margin: 5px;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
 
-.modal-buttons button {
-    margin: 5px;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 5px;
-    background: #007bff;
-    color: white;
-    cursor: pointer;
-}
-
-.modal-buttons button:hover {
-    background: #0056b3;
-}
+        .modal-buttons button:hover {
+            background: #0056b3;
+        }
     </style>
 </head>
 
@@ -401,7 +405,5 @@
         cargarListas();
     </script>
 
-
 </body>
-
 </html>

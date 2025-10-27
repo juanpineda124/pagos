@@ -244,37 +244,37 @@
         function agregarFila(data = {}) {
             const tr = document.createElement("tr");
 
-            // Foto con URL
+            // FOTO CON URL (campo oculto tras cargar)
             const tdFoto = document.createElement("td");
             const inUrl = document.createElement("input");
             inUrl.type = "text";
             inUrl.placeholder = "Pega el enlace de la imagen";
             inUrl.value = data.imagen || "";
-            inUrl.oninput = function () {
+            inUrl.style.width = "100%";
+            tdFoto.appendChild(inUrl);
+
+            function mostrarImagen(url) {
+                if (!url.trim()) return;
                 let img = tdFoto.querySelector("img.preview");
-                if (!inUrl.value.trim()) {
-                    if (img) img.remove();
-                    return;
-                }
                 if (!img) {
                     img = document.createElement("img");
                     img.className = "preview";
                     tdFoto.appendChild(img);
                 }
-                img.src = inUrl.value.trim();
+                img.src = url.trim();
                 activarCambioImagen(img, inUrl);
-            };
-            tdFoto.appendChild(inUrl);
-            if (data.imagen) {
-                const img = document.createElement("img");
-                img.className = "preview";
-                img.src = data.imagen;
-                tdFoto.appendChild(img);
-                activarCambioImagen(img, inUrl);
+                inUrl.style.display = "none"; // 🔹 oculta el campo una vez que se carga
             }
+
+            inUrl.onchange = () => mostrarImagen(inUrl.value);
+
+            if (data.imagen) {
+                mostrarImagen(data.imagen);
+            }
+
             tr.appendChild(tdFoto);
 
-            // Resto igual que antes
+            // Resto del código igual
             const tdAlbum = document.createElement("td");
             const inAlbum = document.createElement("input");
             inAlbum.type = "text";
@@ -325,7 +325,7 @@
             const sel = document.createElement("select");
             sel.className = "estado";
             sel.innerHTML = `<option ${data.estado === "Pagado" ? "selected" : ""}>Pagado</option>
-                             <option ${data.estado === "No Pagado" ? "selected" : ""}>No Pagado</option>`;
+                     <option ${data.estado === "No Pagado" ? "selected" : ""}>No Pagado</option>`;
             tdEstado.appendChild(sel);
             tr.appendChild(tdEstado);
 
@@ -340,6 +340,7 @@
             tablaBody.appendChild(tr);
             actualizarTotales();
         }
+
 
         function activarCambioImagen(img, input) {
             img.onclick = function () {

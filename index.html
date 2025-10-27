@@ -1,403 +1,380 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <title>Registro de Álbumes</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background: #f8f9fa;
-            color: #333;
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        select,
-        button {
-            margin: 5px;
-            padding: 6px 10px;
-            border-radius: 4px;
-            border: 1px solid #aaa;
-            font-size: 14px;
-        }
-
-        button {
-            background: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #0056b3;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            background: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            table-layout: fixed;
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-            vertical-align: middle;
-            word-wrap: break-word;
-        }
-
-        /* 📏 Columna de Foto más angosta */
-        th:first-child,
-        td:first-child {
-            width: 60px;
-        }
-
-        /* 📏 Columna de Álbum más ancha */
-        th:nth-child(2),
-        td:nth-child(2) {
-            width: 250px;
-        }
-
-        th {
-            background: #007bff;
-            color: white;
-        }
-
-        input[type="text"],
-        input[type="number"],
-        input[type="date"],
-        select.estado {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 6px;
-        }
-
-        #resumen {
-            font-weight: bold;
-            font-size: 1.1em;
-            text-align: right;
-            margin-top: 10px;
-            background: #fff;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .acciones button {
-            margin: 2px;
-        }
-
-        /* 🔹 Imagen más pequeña */
-        img.preview {
-            width: 40px;
-            height: 40px;
-            object-fit: cover;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            display: block;
-            margin: 3px auto;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        img.preview:hover {
-            transform: scale(1.3);
-        }
-
-        /* 🔍 Modal para ver imagen en grande */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: #fff;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .modal-img {
-            max-width: 90vw;
-            max-height: 70vh;
-            border-radius: 8px;
-        }
-
-        .modal-buttons {
-            margin-top: 10px;
-        }
-
-        .modal-buttons button {
-            margin: 5px;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 5px;
-            background: #007bff;
-            color: white;
-            cursor: pointer;
-        }
-
-        .modal-buttons button:hover {
-            background: #0056b3;
-        }
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f8f9fa; color: #333; }
+        h1 { text-align: center; margin-bottom: 20px; }
+        select, button { margin: 5px; padding: 6px 10px; border-radius: 4px; border: 1px solid #aaa; font-size: 14px; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); table-layout: fixed; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; vertical-align: middle; word-wrap: break-word; }
+        th:first-child, td:first-child { width: 60px; } /* foto angosta */
+        th:nth-child(2), td:nth-child(2) { width: 250px; } /* álbum más ancho */
+        th { background: #007bff; color: white; }
+        input[type="text"], input[type="number"], input[type="date"], select.estado { width:100%; box-sizing:border-box; padding:6px; }
+        #resumen { font-weight:bold; font-size:1.1em; text-align:right; margin-top:10px; background:#fff; padding:10px; border-radius:8px; box-shadow:0 0 5px rgba(0,0,0,0.1); }
+        .acciones button { margin:2px; }
+        img.preview { width:40px; height:40px; object-fit:cover; border-radius:5px; border:1px solid #ccc; display:block; margin:3px auto; cursor:pointer; transition: transform .15s ease; }
+        img.preview:hover { transform: scale(1.2); }
+        /* modal */
+        .modal { position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:9999; }
+        .modal-content { background:#fff; padding:14px; border-radius:8px; max-width:90vw; max-height:90vh; text-align:center; }
+        .modal-img { max-width:80vw; max-height:70vh; border-radius:6px; display:block; margin:0 auto 8px; }
+        .modal-buttons { margin-top:8px; }
+        .modal-buttons button { margin:6px; padding:8px 12px; border-radius:6px; border:none; background:#007bff; color:#fff; cursor:pointer; }
+        .modal-buttons button:hover { background:#0056b3; }
+        /* hide file input small */
+        td input[type="file"] { font-size: 12px; width: 60px; margin: 6px auto; display:block; }
     </style>
 </head>
-
 <body>
 
-    <h1>📦 Registro de Álbumes</h1>
+<h1>📦 Registro de Álbumes</h1>
 
-    <div style="text-align:center;">
-        <label for="listaSelect">Seleccionar lista:</label>
-        <select id="listaSelect" onchange="cambiarLista()"></select>
-        <button onclick="nuevaLista()">➕ Nueva Lista</button>
-    </div>
+<div style="text-align:center;">
+    <label for="listaSelect">Seleccionar lista:</label>
+    <select id="listaSelect" onchange="cambiarLista()"></select>
+    <button onclick="nuevaLista()">➕ Nueva Lista</button>
+</div>
 
-    <table id="tabla">
-        <thead>
-            <tr>
-                <th>Foto</th>
-                <th>Álbum</th>
-                <th>Cantidad</th>
-                <th>Precio Unitario ($)</th>
-                <th>Total ($)</th>
-                <th>Pago ($)</th>
-                <th>Fecha de Pago</th>
-                <th>Deuda ($)</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody id="tablaBody"></tbody>
-    </table>
+<table id="tabla">
+    <thead>
+        <tr>
+            <th>Foto</th>
+            <th>Álbum</th>
+            <th>Cantidad</th>
+            <th>Precio Unitario ($)</th>
+            <th>Total ($)</th>
+            <th>Pago ($)</th>
+            <th>Fecha de Pago</th>
+            <th>Deuda ($)</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody id="tablaBody"></tbody>
+</table>
 
-    <div style="margin-bottom: 10px;">
-        <button onclick="agregarFila()">➕ Agregar fila</button>
-        <button onclick="guardarDatos()">💾 Guardar</button>
-        <button onclick="borrarDatos()">🗑️ Borrar lista</button>
-    </div>
+<div style="margin-bottom: 10px;">
+    <button onclick="agregarFila()">➕ Agregar fila</button>
+    <button onclick="guardarDatos()">💾 Guardar</button>
+    <button onclick="borrarDatos()">🗑️ Borrar lista</button>
+</div>
 
-    <div id="resumen">
-        💰 Total General: $0 &nbsp;&nbsp;|&nbsp;&nbsp;
-        💵 Total Pagos: $0 &nbsp;&nbsp;|&nbsp;&nbsp;
-        ❗ Total Deuda: $0
-    </div>
+<div id="resumen">
+    💰 Total General: $0 &nbsp;&nbsp;|&nbsp;&nbsp;
+    💵 Total Pagos: $0 &nbsp;&nbsp;|&nbsp;&nbsp;
+    ❗ Total Deuda: $0
+</div>
 
-    <script>
-        const tablaBody = document.getElementById("tablaBody");
-        const resumen = document.getElementById("resumen");
-        const listaSelect = document.getElementById("listaSelect");
+<script>
+/* ----------------- referencias ----------------- */
+const tablaBody = document.getElementById("tablaBody");
+const resumen = document.getElementById("resumen");
+const listaSelect = document.getElementById("listaSelect");
 
-        let listas = JSON.parse(localStorage.getItem("listasNombres")) || ["Lista 1"];
-        let listaActual = localStorage.getItem("listaActual") || "Lista 1";
+let listas = JSON.parse(localStorage.getItem("listasNombres")) || ["Lista 1"];
+let listaActual = localStorage.getItem("listaActual") || "Lista 1";
 
-        function cargarListas() {
-            listaSelect.innerHTML = "";
-            listas.forEach(nombre => {
-                const opt = document.createElement("option");
-                opt.value = nombre;
-                opt.textContent = nombre;
-                if (nombre === listaActual) opt.selected = true;
-                listaSelect.appendChild(opt);
-            });
-            cargarDatos();
+/* ---------- inicialización de listas ---------- */
+function cargarListas(){
+    listaSelect.innerHTML = "";
+    listas.forEach(nombre => {
+        const opt = document.createElement("option");
+        opt.value = nombre;
+        opt.textContent = nombre;
+        if(nombre === listaActual) opt.selected = true;
+        listaSelect.appendChild(opt);
+    });
+    cargarDatos();
+}
+
+/* ---------- crear nueva lista ---------- */
+function nuevaLista(){
+    const nombre = prompt("Nombre de la nueva lista:");
+    if(!nombre) return;
+    if(listas.includes(nombre)){ alert("❗ Esa lista ya existe."); return; }
+    listas.push(nombre);
+    localStorage.setItem("listasNombres", JSON.stringify(listas));
+    listaActual = nombre;
+    localStorage.setItem("listaActual", listaActual);
+    cargarListas();
+}
+
+/* ---------- cambiar lista ---------- */
+function cambiarLista(){
+    listaActual = listaSelect.value;
+    localStorage.setItem("listaActual", listaActual);
+    cargarDatos();
+}
+
+/* ---------- agregar fila (con data opcional) ---------- */
+function agregarFila(data = {}){
+    // Crear fila de forma segura para evitar problemas con innerHTML y listeners
+    const tr = document.createElement("tr");
+
+    // Celda foto
+    const tdFoto = document.createElement("td");
+    // input file
+    const inputFile = document.createElement("input");
+    inputFile.type = "file";
+    inputFile.accept = "image/*";
+    inputFile.onchange = function(){ mostrarImagen(inputFile); };
+    if(data.imagen) inputFile.style.display = "none";
+    tdFoto.appendChild(inputFile);
+    // img si viene
+    if(data.imagen){
+        const img = document.createElement("img");
+        img.className = "preview";
+        img.src = data.imagen;
+        tdFoto.appendChild(img);
+        // activar modal/cambiar
+        activarCambioImagen(img, inputFile);
+    }
+
+    tr.appendChild(tdFoto);
+
+    // Album (columna 2)
+    const tdAlbum = document.createElement("td");
+    const inAlbum = document.createElement("input");
+    inAlbum.type = "text";
+    inAlbum.value = data.articulo || "";
+    inAlbum.onchange = actualizarTotales;
+    tdAlbum.appendChild(inAlbum);
+    tr.appendChild(tdAlbum);
+
+    // Cantidad
+    const tdCant = document.createElement("td");
+    const inCant = document.createElement("input");
+    inCant.type = "number"; inCant.min = 0; inCant.value = data.cantidad || 0;
+    inCant.onchange = actualizarTotales;
+    tdCant.appendChild(inCant);
+    tr.appendChild(tdCant);
+
+    // Precio
+    const tdPrecio = document.createElement("td");
+    const inPrecio = document.createElement("input");
+    inPrecio.type = "number"; inPrecio.min = 0; inPrecio.value = data.precio || 0;
+    inPrecio.onchange = actualizarTotales;
+    tdPrecio.appendChild(inPrecio);
+    tr.appendChild(tdPrecio);
+
+    // Total (texto)
+    const tdTotal = document.createElement("td");
+    tdTotal.className = "total";
+    tdTotal.textContent = "$0";
+    tr.appendChild(tdTotal);
+
+    // Pago
+    const tdPago = document.createElement("td");
+    const inPago = document.createElement("input");
+    inPago.type = "number"; inPago.min = 0; inPago.value = data.pago || 0;
+    inPago.onchange = actualizarTotales;
+    tdPago.appendChild(inPago);
+    tr.appendChild(tdPago);
+
+    // Fecha
+    const tdFecha = document.createElement("td");
+    const inFecha = document.createElement("input");
+    inFecha.type = "date"; inFecha.value = data.fecha || "";
+    inFecha.onchange = actualizarTotales;
+    tdFecha.appendChild(inFecha);
+    tr.appendChild(tdFecha);
+
+    // Deuda
+    const tdDeuda = document.createElement("td");
+    tdDeuda.className = "deuda";
+    tdDeuda.textContent = "$0";
+    tr.appendChild(tdDeuda);
+
+    // Estado
+    const tdEstado = document.createElement("td");
+    const sel = document.createElement("select");
+    sel.className = "estado";
+    const op1 = document.createElement("option"); op1.textContent = "Pagado";
+    const op2 = document.createElement("option"); op2.textContent = "No Pagado";
+    if(data.estado === "Pagado") op1.selected = true;
+    if(data.estado === "No Pagado") op2.selected = true;
+    sel.appendChild(op1); sel.appendChild(op2);
+    tdEstado.appendChild(sel);
+    tr.appendChild(tdEstado);
+
+    // Acciones
+    const tdAcc = document.createElement("td");
+    tdAcc.className = "acciones";
+    const btnDel = document.createElement("button");
+    btnDel.textContent = "❌";
+    btnDel.onclick = function(){ eliminarFila(btnDel); };
+    tdAcc.appendChild(btnDel);
+    tr.appendChild(tdAcc);
+
+    tablaBody.appendChild(tr);
+    actualizarTotales();
+}
+
+/* ---------- mostrar imagen al seleccionar (lee base64) ---------- */
+function mostrarImagen(input){
+    const file = input.files && input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+        // si ya hay img la actualizamos, sino creamos
+        let img = input.parentElement.querySelector("img.preview");
+        if(!img){
+            img = document.createElement("img");
+            img.className = "preview";
+            input.parentElement.appendChild(img);
         }
+        img.src = e.target.result;
+        input.style.display = "none";
+        // activar modal y cambio
+        activarCambioImagen(img, input);
+        // guardar inmediatamente (se guarda el base64)
+        guardarDatos();
+    };
+    reader.readAsDataURL(file);
+}
 
-        function nuevaLista() {
-            const nombre = prompt("Nombre de la nueva lista:");
-            if (nombre && !listas.includes(nombre)) {
-                listas.push(nombre);
-                localStorage.setItem("listasNombres", JSON.stringify(listas));
-                listaActual = nombre;
-                localStorage.setItem("listaActual", listaActual);
-                cargarListas();
-            } else if (listas.includes(nombre)) {
-                alert("❗ Esa lista ya existe.");
-            }
-        }
+/* ---------- modal para ver imagen grande y cambiarla ---------- */
+function activarCambioImagen(img, input){
+    // remover handlers previos por seguridad
+    img.onclick = null;
 
-        function cambiarLista() {
-            listaActual = listaSelect.value;
-            localStorage.setItem("listaActual", listaActual);
-            cargarDatos();
-        }
+    img.onclick = function(){
+        // crear modal
+        const modal = document.createElement("div");
+        modal.className = "modal";
 
-        function agregarFila(data = {}) {
-            const fila = document.createElement("tr");
-            fila.innerHTML = `
-        <td>
-            <input type="file" accept="image/*" onchange="mostrarImagen(this)" ${data.imagen ? 'style="display:none;"' : ''}>
-            ${data.imagen ? `<img class="preview" src="${data.imagen}" alt="">` : ""}
-        </td>
-        <td><input type="text" value="${data.articulo || ''}" onchange="actualizarTotales()"></td>
-        <td><input type="number" value="${data.cantidad || 0}" min="0" onchange="actualizarTotales()"></td>
-        <td><input type="number" value="${data.precio || 0}" min="0" onchange="actualizarTotales()"></td>
-        <td class="total">$0</td>
-        <td><input type="number" value="${data.pago || 0}" min="0" onchange="actualizarTotales()"></td>
-        <td><input type="date" value="${data.fecha || ''}" onchange="actualizarTotales()"></td>
-        <td class="deuda">$0</td>
-        <td>
-            <select class="estado">
-                <option ${data.estado === "Pagado" ? "selected" : ""}>Pagado</option>
-                <option ${data.estado === "No Pagado" ? "selected" : ""}>No Pagado</option>
-            </select>
-        </td>
-        <td class="acciones"><button onclick="eliminarFila(this)">❌</button></td>
-    `;
-            tablaBody.appendChild(fila);
+        const content = document.createElement("div");
+        content.className = "modal-content";
 
-            const img = fila.querySelector("img");
-            const input = fila.querySelector("input[type='file']");
-            if (img && input) activarCambioImagen(img, input);
+        const bigImg = document.createElement("img");
+        bigImg.className = "modal-img";
+        bigImg.src = img.src;
 
-            actualizarTotales();
-        }
+        const buttons = document.createElement("div");
+        buttons.className = "modal-buttons";
 
-        function mostrarImagen(input) {
-            const file = input.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    let img = input.parentElement.querySelector("img");
-                    if (!img) {
-                        img = document.createElement("img");
-                        img.classList.add("preview");
-                        input.parentElement.appendChild(img);
-                    }
-                    img.src = e.target.result;
-                    input.style.display = "none";
-                    activarCambioImagen(img, input);
-                    guardarDatos(); // ✅ Guarda automáticamente al subir imagen
+        const btnCambiar = document.createElement("button");
+        btnCambiar.textContent = "Cambiar imagen";
+        const btnCerrar = document.createElement("button");
+        btnCerrar.textContent = "Cerrar";
+
+        buttons.appendChild(btnCambiar);
+        buttons.appendChild(btnCerrar);
+
+        content.appendChild(bigImg);
+        content.appendChild(buttons);
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+
+        // cerrar
+        btnCerrar.onclick = () => { modal.remove(); };
+
+        // cambiar imagen: abrimos un input temporal
+        btnCambiar.onclick = () => {
+            const temp = document.createElement("input");
+            temp.type = "file"; temp.accept = "image/*";
+            temp.onchange = function(){
+                const f = temp.files && temp.files[0];
+                if(!f) return;
+                const r = new FileReader();
+                r.onload = function(ev){
+                    // actualizar miniatura y modal
+                    img.src = ev.target.result;
+                    bigImg.src = ev.target.result;
+                    // si hay input original, mantenerlo oculto
+                    if(input) input.style.display = "none";
+                    // guardar cambios inmediatamente
+                    guardarDatos();
                 };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function activarCambioImagen(img, input) {
-            img.onclick = function () {
-                const modal = document.createElement("div");
-                modal.classList.add("modal");
-                modal.innerHTML = `
-                <div class="modal-content">
-                    <img src="${img.src}" class="modal-img" alt="">
-                    <div class="modal-buttons">
-                        <button class="cambiar-btn">Cambiar imagen</button>
-                        <button class="cerrar-btn">Cerrar</button>
-                    </div>
-                </div>
-            `;
-                document.body.appendChild(modal);
-
-                modal.querySelector(".cerrar-btn").onclick = () => modal.remove();
-
-                modal.querySelector(".cambiar-btn").onclick = () => {
-                    const tempInput = document.createElement("input");
-                    tempInput.type = "file";
-                    tempInput.accept = "image/*";
-                    tempInput.onchange = function () {
-                        const file = tempInput.files[0];
-                        const reader = new FileReader();
-                        reader.onload = function (e) {
-                            img.src = e.target.result;
-                            modal.querySelector(".modal-img").src = e.target.result;
-                            guardarDatos(); // ✅ Guarda automáticamente al cambiar
-                        };
-                        reader.readAsDataURL(file);
-                    };
-                    tempInput.click();
-                };
+                r.readAsDataURL(f);
             };
-        }
+            temp.click();
+        };
+    };
+}
 
-        function eliminarFila(boton) {
-            boton.closest("tr").remove();
-            actualizarTotales();
-        }
+/* ---------- eliminar fila ---------- */
+function eliminarFila(boton){
+    boton.closest("tr").remove();
+    actualizarTotales();
+    guardarDatos();
+}
 
-        function actualizarTotales() {
-            let totalGeneral = 0;
-            let totalPagos = 0;
-            let totalDeuda = 0;
+/* ---------- actualizar totales ---------- */
+function actualizarTotales(){
+    let totalGeneral = 0, totalPagos = 0, totalDeuda = 0;
+    const filas = tablaBody.querySelectorAll("tr");
+    filas.forEach(fila => {
+        const cantidad = parseFloat(fila.children[2].querySelector("input").value) || 0;
+        const precio = parseFloat(fila.children[3].querySelector("input").value) || 0;
+        const pago = parseFloat(fila.children[5].querySelector("input").value) || 0;
+        const total = cantidad * precio;
+        const deuda = Math.max(0, total - pago);
+        fila.children[4].textContent = `$${total.toFixed(2)}`;
+        fila.children[7].textContent = `$${deuda.toFixed(2)}`;
+        totalGeneral += total;
+        totalPagos += pago;
+        totalDeuda += deuda;
+    });
+    resumen.innerHTML = `💰 Total General: $${totalGeneral.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp; 💵 Total Pagos: $${totalPagos.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp; ❗ Total Deuda: $${totalDeuda.toFixed(2)}`;
+}
 
-            const filas = tablaBody.querySelectorAll("tr");
-            filas.forEach(fila => {
-                const cantidad = parseFloat(fila.children[2].children[0].value) || 0;
-                const precio = parseFloat(fila.children[3].children[0].value) || 0;
-                const pago = parseFloat(fila.children[5].children[0].value) || 0;
+/* ---------- guardar datos completa (incluye base64 de imagen si existe) ---------- */
+function guardarDatos(){
+    const filas = tablaBody.querySelectorAll("tr");
+    const datos = [];
+    filas.forEach(fila => {
+        const imgEl = fila.children[0].querySelector("img.preview");
+        const imgSrc = imgEl ? imgEl.src : "";
+        datos.push({
+            imagen: imgSrc,
+            articulo: fila.children[1].querySelector("input").value,
+            cantidad: fila.children[2].querySelector("input").value,
+            precio: fila.children[3].querySelector("input").value,
+            pago: fila.children[5].querySelector("input").value,
+            fecha: fila.children[6].querySelector("input").value,
+            estado: fila.children[8].querySelector("select").value
+        });
+    });
+    localStorage.setItem("registroArticulos_" + listaActual, JSON.stringify(datos));
+    // Nota: no hago alert cada vez para no molestar; el botón Guardar aún puede alertar si quieres
+}
 
-                const total = cantidad * precio;
-                const deuda = total - pago;
+/* ---------- cargar datos desde localStorage y reestablecer listeners ---------- */
+function cargarDatos(){
+    tablaBody.innerHTML = "";
+    const datos = JSON.parse(localStorage.getItem("registroArticulos_" + listaActual) || "[]");
+    datos.forEach(fila => agregarFila(fila));
+    // después de agregarlos, asegurar que los previews restaurados tengan su handler
+    tablaBody.querySelectorAll("tr").forEach(tr => {
+        const img = tr.querySelector("img.preview");
+        const input = tr.querySelector("input[type=file]");
+        if(img && input) activarCambioImagen(img, input);
+    });
+    actualizarTotales();
+}
 
-                fila.children[4].textContent = `$${total.toFixed(2)}`;
-                fila.children[7].textContent = `$${deuda.toFixed(2)}`;
+/* ---------- borrar lista ---------- */
+function borrarDatos(){
+    if(!confirm("¿Seguro que deseas borrar todos los registros de " + listaActual + "?")) return;
+    localStorage.removeItem("registroArticulos_" + listaActual);
+    tablaBody.innerHTML = "";
+    actualizarTotales();
+}
 
-                totalGeneral += total;
-                totalPagos += pago;
-                totalDeuda += deuda;
-            });
+/* ---------- inicial ---------- */
+cargarListas();
 
-            resumen.innerHTML = `
-        💰 Total General: $${totalGeneral.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp;
-        💵 Total Pagos: $${totalPagos.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp;
-        ❗ Total Deuda: $${totalDeuda.toFixed(2)}
-    `;
-        }
-
-        function guardarDatos() {
-            const filas = tablaBody.querySelectorAll("tr");
-            const datos = [];
-
-            filas.forEach(fila => {
-                const img = fila.querySelector("img") ? fila.querySelector("img").src : "";
-                datos.push({
-                    imagen: img,
-                    articulo: fila.children[1].children[0].value,
-                    cantidad: fila.children[2].children[0].value,
-                    precio: fila.children[3].children[0].value,
-                    pago: fila.children[5].children[0].value,
-                    fecha: fila.children[6].children[0].value,
-                    estado: fila.children[8].children[0].value
-                });
-            });
-
-            localStorage.setItem("registroArticulos_" + listaActual, JSON.stringify(datos));
-        }
-
-        function cargarDatos() {
-            tablaBody.innerHTML = "";
-            const datos = JSON.parse(localStorage.getItem("registroArticulos_" + listaActual)) || [];
-            datos.forEach(fila => agregarFila(fila));
-            actualizarTotales();
-        }
-
-        function borrarDatos() {
-            if (confirm("¿Seguro que deseas borrar todos los registros de " + listaActual + "?")) {
-                localStorage.removeItem("registroArticulos_" + listaActual);
-                tablaBody.innerHTML = "";
-                actualizarTotales();
-            }
-        }
-
-        cargarListas();
-    </script>
+/* ---------- exponer guardarDatos al botón “Guardar” (opcional) ---------- */
+document.querySelectorAll("button").forEach(b=>{
+    if(b.textContent.includes("💾")) b.onclick = function(){ guardarDatos(); alert("✅ Datos guardados en " + listaActual); };
+});
+</script>
 
 </body>
 </html>

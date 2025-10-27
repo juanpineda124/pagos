@@ -239,25 +239,25 @@
         function agregarFila(data = {}) {
             const fila = document.createElement("tr");
             fila.innerHTML = `
-        <td>
-            <input type="file" accept="image/*" onchange="mostrarImagen(this)" ${data.imagen ? 'style="display:none;"' : ''}>
-            ${data.imagen ? `<img class="preview" src="${data.imagen}" data-img="${data.imagen}" alt="">` : ""}
-        </td>
-        <td><input type="text" value="${data.articulo || ''}" onchange="actualizarTotales()"></td>
-        <td><input type="number" value="${data.cantidad || 0}" min="0" onchange="actualizarTotales()"></td>
-        <td><input type="number" value="${data.precio || 0}" min="0" onchange="actualizarTotales()"></td>
-        <td class="total">$0</td>
-        <td><input type="number" value="${data.pago || 0}" min="0" onchange="actualizarTotales()"></td>
-        <td><input type="date" value="${data.fecha || ''}" onchange="actualizarTotales()"></td>
-        <td class="deuda">$0</td>
-        <td>
-            <select class="estado">
-                <option ${data.estado === "Pagado" ? "selected" : ""}>Pagado</option>
-                <option ${data.estado === "No Pagado" ? "selected" : ""}>No Pagado</option>
-            </select>
-        </td>
-        <td class="acciones"><button onclick="eliminarFila(this)">❌</button></td>
-    `;
+                <td>
+                    <input type="file" accept="image/*" onchange="mostrarImagen(this)" ${data.imagen ? 'style="display:none;"' : ''}>
+                    ${data.imagen ? `<img class="preview" src="${data.imagen}" alt="">` : ""}
+                </td>
+                <td><input type="text" value="${data.articulo || ''}" onchange="actualizarTotales()"></td>
+                <td><input type="number" value="${data.cantidad || 0}" min="0" onchange="actualizarTotales()"></td>
+                <td><input type="number" value="${data.precio || 0}" min="0" onchange="actualizarTotales()"></td>
+                <td class="total">$0</td>
+                <td><input type="number" value="${data.pago || 0}" min="0" onchange="actualizarTotales()"></td>
+                <td><input type="date" value="${data.fecha || ''}" onchange="actualizarTotales()"></td>
+                <td class="deuda">$0</td>
+                <td>
+                    <select class="estado">
+                        <option ${data.estado === "Pagado" ? "selected" : ""}>Pagado</option>
+                        <option ${data.estado === "No Pagado" ? "selected" : ""}>No Pagado</option>
+                    </select>
+                </td>
+                <td class="acciones"><button onclick="eliminarFila(this)">❌</button></td>
+            `;
             tablaBody.appendChild(fila);
 
             const img = fila.querySelector("img");
@@ -267,7 +267,7 @@
             actualizarTotales();
         }
 
-        // ✅ Mostrar imagen y permitir cambiarla
+        // ✅ Mostrar imagen y guardar automáticamente
         function mostrarImagen(input) {
             const file = input.files[0];
             if (file) {
@@ -280,32 +280,31 @@
                         input.parentElement.appendChild(img);
                     }
                     img.src = e.target.result;
-                    img.dataset.img = e.target.result; // ✅ guarda la imagen actualizada
                     input.style.display = "none";
                     activarCambioImagen(img, input);
+                    guardarDatos(); // 🔹 Guardado automático
                 };
                 reader.readAsDataURL(file);
             }
         }
 
-        // ✅ Modal para ampliar y cambiar imagen
+        // ✅ Modal para ampliar, cambiar y guardar imagen automáticamente
         function activarCambioImagen(img, input) {
             img.onclick = function () {
                 const modal = document.createElement("div");
                 modal.classList.add("modal");
 
                 modal.innerHTML = `
-                <div class="modal-content">
-                    <img src="${img.src}" class="modal-img" alt="">
-                    <div class="modal-buttons">
-                        <button class="cambiar-btn">Cambiar imagen</button>
-                        <button class="cerrar-btn">Cerrar</button>
+                    <div class="modal-content">
+                        <img src="${img.src}" class="modal-img" alt="">
+                        <div class="modal-buttons">
+                            <button class="cambiar-btn">Cambiar imagen</button>
+                            <button class="cerrar-btn">Cerrar</button>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
 
                 document.body.appendChild(modal);
-
                 modal.querySelector(".cerrar-btn").onclick = () => modal.remove();
 
                 modal.querySelector(".cambiar-btn").onclick = () => {
@@ -317,9 +316,9 @@
                         const reader = new FileReader();
                         reader.onload = function (e) {
                             img.src = e.target.result;
-                            img.dataset.img = e.target.result; // ✅ actualiza dataset también
                             input.style.display = "none";
                             modal.querySelector(".modal-img").src = e.target.result;
+                            guardarDatos(); // 🔹 Guardado automático al cambiar
                         };
                         reader.readAsDataURL(file);
                     };
@@ -331,44 +330,36 @@
         function eliminarFila(boton) {
             boton.closest("tr").remove();
             actualizarTotales();
+            guardarDatos(); // 🔹 Guardado automático al eliminar
         }
 
         function actualizarTotales() {
-            let totalGeneral = 0;
-            let totalPagos = 0;
-            let totalDeuda = 0;
-
+            let totalGeneral = 0, totalPagos = 0, totalDeuda = 0;
             const filas = tablaBody.querySelectorAll("tr");
             filas.forEach(fila => {
                 const cantidad = parseFloat(fila.children[2].children[0].value) || 0;
                 const precio = parseFloat(fila.children[3].children[0].value) || 0;
                 const pago = parseFloat(fila.children[5].children[0].value) || 0;
-
                 const total = cantidad * precio;
                 const deuda = total - pago;
-
                 fila.children[4].textContent = `$${total.toFixed(2)}`;
                 fila.children[7].textContent = `$${deuda.toFixed(2)}`;
-
                 totalGeneral += total;
                 totalPagos += pago;
                 totalDeuda += deuda;
             });
-
             resumen.innerHTML = `
-        💰 Total General: $${totalGeneral.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp;
-        💵 Total Pagos: $${totalPagos.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp;
-        ❗ Total Deuda: $${totalDeuda.toFixed(2)}
-    `;
+                💰 Total General: $${totalGeneral.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp;
+                💵 Total Pagos: $${totalPagos.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp;
+                ❗ Total Deuda: $${totalDeuda.toFixed(2)}
+            `;
         }
 
         function guardarDatos() {
             const filas = tablaBody.querySelectorAll("tr");
             const datos = [];
-
             filas.forEach(fila => {
-                const imgElem = fila.children[0].querySelector("img");
-                const img = imgElem ? (imgElem.dataset.img || imgElem.src) : "";
+                const img = fila.querySelector("img") ? fila.querySelector("img").src : "";
                 datos.push({
                     imagen: img,
                     articulo: fila.children[1].children[0].value,
@@ -379,9 +370,7 @@
                     estado: fila.children[8].children[0].value
                 });
             });
-
             localStorage.setItem("registroArticulos_" + listaActual, JSON.stringify(datos));
-            alert("✅ Datos guardados en " + listaActual);
         }
 
         function cargarDatos() {
@@ -396,11 +385,11 @@
                 localStorage.removeItem("registroArticulos_" + listaActual);
                 tablaBody.innerHTML = "";
                 actualizarTotales();
+                guardarDatos();
             }
         }
 
         cargarListas();
     </script>
-
 </body>
 </html>

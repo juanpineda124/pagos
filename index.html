@@ -240,11 +240,27 @@
             cargarDatos();
         }
 
-        // ✅ Solo cambia la parte de IMAGEN a usar URL
+        // ✅ Convierte cualquier tipo de enlace de Google Drive en uno visible
+        function convertirDriveURL(url) {
+            if (!url) return "";
+
+            // Buscar el ID del archivo en los distintos tipos de enlaces
+            const match = url.match(/(?:file\/d\/|id=)([a-zA-Z0-9_-]{10,})/);
+            if (match && match[1]) {
+                const id = match[1];
+                // Enlace directo visible (imagen embebible)
+                return `https://lh3.googleusercontent.com/d/${id}=s800`;
+            }
+
+            // Si no es de Drive, devolver tal cual
+            return url;
+        }
+
+
         function agregarFila(data = {}) {
             const tr = document.createElement("tr");
 
-            // FOTO CON URL (campo oculto tras cargar)
+            // FOTO CON URL
             const tdFoto = document.createElement("td");
             const inUrl = document.createElement("input");
             inUrl.type = "text";
@@ -255,6 +271,7 @@
 
             function mostrarImagen(url) {
                 if (!url.trim()) return;
+                url = convertirDriveURL(url); // convierte si es de Drive
                 let img = tdFoto.querySelector("img.preview");
                 if (!img) {
                     img = document.createElement("img");
@@ -263,18 +280,14 @@
                 }
                 img.src = url.trim();
                 activarCambioImagen(img, inUrl);
-                inUrl.style.display = "none"; // 🔹 oculta el campo una vez que se carga
+                inUrl.style.display = "none";
             }
 
             inUrl.onchange = () => mostrarImagen(inUrl.value);
-
-            if (data.imagen) {
-                mostrarImagen(data.imagen);
-            }
-
+            if (data.imagen) mostrarImagen(data.imagen);
             tr.appendChild(tdFoto);
 
-            // Resto del código igual
+            // resto igual
             const tdAlbum = document.createElement("td");
             const inAlbum = document.createElement("input");
             inAlbum.type = "text";
@@ -341,7 +354,6 @@
             actualizarTotales();
         }
 
-
         function activarCambioImagen(img, input) {
             img.onclick = function () {
                 const modal = document.createElement("div");
@@ -371,11 +383,12 @@
 
                 btnCerrar.onclick = () => modal.remove();
                 btnCambiar.onclick = () => {
-                    const nueva = prompt("Pega el nuevo enlace de imagen:");
+                    const nueva = prompt("Pega el nuevo enlace de imagen (Drive o URL directa):");
                     if (nueva) {
-                        img.src = nueva;
-                        input.value = nueva;
-                        bigImg.src = nueva;
+                        const convertida = convertirDriveURL(nueva);
+                        img.src = convertida;
+                        input.value = convertida;
+                        bigImg.src = convertida;
                     }
                 };
             };

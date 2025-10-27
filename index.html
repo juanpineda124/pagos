@@ -43,7 +43,7 @@
             margin-top: 15px;
             background: white;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            table-layout: fixed; /* 🔹 Para respetar los anchos */
+            table-layout: fixed;
         }
 
         th,
@@ -64,7 +64,7 @@
         /* 📏 Columna de Álbum más ancha */
         th:nth-child(2),
         td:nth-child(2) {
-            width: 250px; /* 🔹 Ancho aumentado */
+            width: 250px;
         }
 
         th {
@@ -271,7 +271,6 @@
             actualizarTotales();
         }
 
-        // ✅ Mostrar imagen y permitir cambiarla
         function mostrarImagen(input) {
             const file = input.files[0];
             if (file) {
@@ -286,17 +285,16 @@
                     img.src = e.target.result;
                     input.style.display = "none";
                     activarCambioImagen(img, input);
+                    guardarDatos(); // ✅ Guarda automáticamente al subir imagen
                 };
                 reader.readAsDataURL(file);
             }
         }
 
-        // ✅ Modal para ampliar y cambiar imagen
         function activarCambioImagen(img, input) {
             img.onclick = function () {
                 const modal = document.createElement("div");
                 modal.classList.add("modal");
-
                 modal.innerHTML = `
                 <div class="modal-content">
                     <img src="${img.src}" class="modal-img" alt="">
@@ -306,13 +304,10 @@
                     </div>
                 </div>
             `;
-
                 document.body.appendChild(modal);
 
-                // Cerrar modal
                 modal.querySelector(".cerrar-btn").onclick = () => modal.remove();
 
-                // Cambiar imagen
                 modal.querySelector(".cambiar-btn").onclick = () => {
                     const tempInput = document.createElement("input");
                     tempInput.type = "file";
@@ -322,8 +317,8 @@
                         const reader = new FileReader();
                         reader.onload = function (e) {
                             img.src = e.target.result;
-                            input.style.display = "none";
                             modal.querySelector(".modal-img").src = e.target.result;
+                            guardarDatos(); // ✅ Guarda automáticamente al cambiar
                         };
                         reader.readAsDataURL(file);
                     };
@@ -371,7 +366,7 @@
             const datos = [];
 
             filas.forEach(fila => {
-                const img = fila.children[0].querySelector("img") ? fila.children[0].querySelector("img").src : "";
+                const img = fila.querySelector("img") ? fila.querySelector("img").src : "";
                 datos.push({
                     imagen: img,
                     articulo: fila.children[1].children[0].value,
@@ -384,7 +379,6 @@
             });
 
             localStorage.setItem("registroArticulos_" + listaActual, JSON.stringify(datos));
-            alert("✅ Datos guardados en " + listaActual);
         }
 
         function cargarDatos() {

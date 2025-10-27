@@ -241,7 +241,7 @@
             fila.innerHTML = `
         <td>
             <input type="file" accept="image/*" onchange="mostrarImagen(this)" ${data.imagen ? 'style="display:none;"' : ''}>
-            ${data.imagen ? `<img class="preview" src="${data.imagen}" alt="">` : ""}
+            ${data.imagen ? `<img class="preview" src="${data.imagen}" data-img="${data.imagen}" alt="">` : ""}
         </td>
         <td><input type="text" value="${data.articulo || ''}" onchange="actualizarTotales()"></td>
         <td><input type="number" value="${data.cantidad || 0}" min="0" onchange="actualizarTotales()"></td>
@@ -267,7 +267,7 @@
             actualizarTotales();
         }
 
-        // ✅ Mostrar imagen
+        // ✅ Mostrar imagen y permitir cambiarla
         function mostrarImagen(input) {
             const file = input.files[0];
             if (file) {
@@ -280,6 +280,7 @@
                         input.parentElement.appendChild(img);
                     }
                     img.src = e.target.result;
+                    img.dataset.img = e.target.result; // ✅ guarda la imagen actualizada
                     input.style.display = "none";
                     activarCambioImagen(img, input);
                 };
@@ -287,7 +288,7 @@
             }
         }
 
-        // ✅ Modal para cambiar imagen (actualiza src en tiempo real)
+        // ✅ Modal para ampliar y cambiar imagen
         function activarCambioImagen(img, input) {
             img.onclick = function () {
                 const modal = document.createElement("div");
@@ -315,12 +316,10 @@
                         const file = tempInput.files[0];
                         const reader = new FileReader();
                         reader.onload = function (e) {
-                            const newSrc = e.target.result;
-                            img.src = newSrc;
-                            modal.querySelector(".modal-img").src = newSrc;
+                            img.src = e.target.result;
+                            img.dataset.img = e.target.result; // ✅ actualiza dataset también
                             input.style.display = "none";
-                            // 🔹 Guarda la nueva imagen directamente en el input dataset
-                            input.dataset.newImage = newSrc;
+                            modal.querySelector(".modal-img").src = e.target.result;
                         };
                         reader.readAsDataURL(file);
                     };
@@ -363,18 +362,15 @@
     `;
         }
 
-        // ✅ Guardar datos incluyendo imágenes actualizadas
         function guardarDatos() {
             const filas = tablaBody.querySelectorAll("tr");
             const datos = [];
 
             filas.forEach(fila => {
-                const imgTag = fila.children[0].querySelector("img");
-                const inputFile = fila.children[0].querySelector("input[type='file']");
-                const imagen = (inputFile?.dataset.newImage) || (imgTag ? imgTag.src : "");
-
+                const imgElem = fila.children[0].querySelector("img");
+                const img = imgElem ? (imgElem.dataset.img || imgElem.src) : "";
                 datos.push({
-                    imagen: imagen,
+                    imagen: img,
                     articulo: fila.children[1].children[0].value,
                     cantidad: fila.children[2].children[0].value,
                     precio: fila.children[3].children[0].value,

@@ -44,7 +44,8 @@
             margin-top: 15px;
             background: white;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            table-layout: fixed; /* ✅ mantiene los tamaños fijos */
+            table-layout: fixed;
+            /* ✅ mantiene los tamaños fijos */
         }
 
         th,
@@ -68,12 +69,14 @@
         /* ✅ Fijar las siguientes columnas para que no se deformen */
         th:nth-child(2),
         td:nth-child(2) {
-            width: 120px; /* Foto (URL) */
+            width: 120px;
+            /* Foto (URL) */
         }
 
         th:nth-child(3),
         td:nth-child(3) {
-            width: 250px; /* Álbum */
+            width: 250px;
+            /* Álbum */
         }
 
         th {
@@ -168,6 +171,12 @@
         .modal-buttons button:hover {
             background: #0056b3;
         }
+
+        tr.pagado {
+            background-color: #d4edda !important;
+            /* verde suave */
+            transition: background-color 0.3s ease;
+        }
     </style>
 </head>
 
@@ -212,282 +221,311 @@
         ❗ Total Deuda: $0
     </div>
 
-   <script>
-    const tablaBody = document.getElementById("tablaBody");
-    const resumen = document.getElementById("resumen");
-    const listaSelect = document.getElementById("listaSelect");
+    <script>
+        const tablaBody = document.getElementById("tablaBody");
+        const resumen = document.getElementById("resumen");
+        const listaSelect = document.getElementById("listaSelect");
 
-    let listas = JSON.parse(localStorage.getItem("listasNombres")) || ["Lista 1"];
-    let listaActual = localStorage.getItem("listaActual") || "Lista 1";
+        let listas = JSON.parse(localStorage.getItem("listasNombres")) || ["Lista 1"];
+        let listaActual = localStorage.getItem("listaActual") || "Lista 1";
 
-    function cargarListas() {
-        listaSelect.innerHTML = "";
-        listas.forEach(nombre => {
-            const opt = document.createElement("option");
-            opt.value = nombre;
-            opt.textContent = nombre;
-            if (nombre === listaActual) opt.selected = true;
-            listaSelect.appendChild(opt);
-        });
-        cargarDatos();
-    }
-
-    function nuevaLista() {
-        const nombre = prompt("Nombre de la nueva lista:");
-        if (!nombre) return;
-        if (listas.includes(nombre)) { alert("❗ Esa lista ya existe."); return; }
-        listas.push(nombre);
-        localStorage.setItem("listasNombres", JSON.stringify(listas));
-        listaActual = nombre;
-        localStorage.setItem("listaActual", listaActual);
-        cargarListas();
-    }
-
-    function eliminarLista() {
-        if (!listaActual) return alert("❗ No hay ninguna lista seleccionada.");
-        const listaEliminada = listaActual;
-        const confirmar = confirm(`⚠️ ¿Seguro que deseas eliminar completamente la lista "${listaEliminada}"?`);
-        if (!confirmar) return;
-        localStorage.removeItem("registroArticulos_" + listaEliminada);
-        listas = listas.filter(l => l !== listaEliminada);
-        localStorage.setItem("listasNombres", JSON.stringify(listas));
-        listaActual = listas[0] || "Lista 1";
-        localStorage.setItem("listaActual", listaActual);
-        cargarListas();
-    }
-
-    function cambiarLista() {
-        listaActual = listaSelect.value;
-        localStorage.setItem("listaActual", listaActual);
-        cargarDatos();
-    }
-
-    function convertirDriveURL(url) {
-        if (!url) return "";
-        const match = url.match(/(?:file\/d\/|id=)([a-zA-Z0-9_-]{10,})/);
-        if (match && match[1]) return `https://lh3.googleusercontent.com/d/${match[1]}=s800`;
-        return url;
-    }
-
-    // ✅ Agregar fila con número consecutivo automático
-    function agregarFila(data = {}) {
-        const tr = document.createElement("tr");
-
-        // 🔢 Número de registro (se reenumera automáticamente)
-        const tdNum = document.createElement("td");
-        tdNum.className = "numeroRegistro";
-        tdNum.textContent = tablaBody.rows.length + 1;
-        tr.appendChild(tdNum);
-
-        // 📸 Imagen
-        const tdFoto = document.createElement("td");
-        const inUrl = document.createElement("input");
-        inUrl.type = "text";
-        inUrl.placeholder = "Pega el enlace de la imagen";
-        inUrl.value = data.imagen || "";
-        tdFoto.appendChild(inUrl);
-
-        function mostrarImagen(url) {
-            if (!url.trim()) return;
-            url = convertirDriveURL(url);
-            let img = tdFoto.querySelector("img.preview");
-            if (!img) {
-                img = document.createElement("img");
-                img.className = "preview";
-                tdFoto.appendChild(img);
-            }
-            img.src = url.trim();
-            activarCambioImagen(img, inUrl);
-            inUrl.style.display = "none";
+        function cargarListas() {
+            listaSelect.innerHTML = "";
+            listas.forEach(nombre => {
+                const opt = document.createElement("option");
+                opt.value = nombre;
+                opt.textContent = nombre;
+                if (nombre === listaActual) opt.selected = true;
+                listaSelect.appendChild(opt);
+            });
+            cargarDatos();
         }
 
-        inUrl.onchange = () => mostrarImagen(inUrl.value);
-        if (data.imagen) mostrarImagen(data.imagen);
-        tr.appendChild(tdFoto);
+        function nuevaLista() {
+            const nombre = prompt("Nombre de la nueva lista:");
+            if (!nombre) return;
+            if (listas.includes(nombre)) { alert("❗ Esa lista ya existe."); return; }
+            listas.push(nombre);
+            localStorage.setItem("listasNombres", JSON.stringify(listas));
+            listaActual = nombre;
+            localStorage.setItem("listaActual", listaActual);
+            cargarListas();
+        }
 
-        // 🎵 Álbum
-        const tdAlbum = document.createElement("td");
-        const inAlbum = document.createElement("input");
-        inAlbum.type = "text";
-        inAlbum.value = data.articulo || "";
-        inAlbum.onchange = actualizarTotales;
-        tdAlbum.appendChild(inAlbum);
-        tr.appendChild(tdAlbum);
+        function eliminarLista() {
+            if (!listaActual) return alert("❗ No hay ninguna lista seleccionada.");
+            const listaEliminada = listaActual;
+            const confirmar = confirm(`⚠️ ¿Seguro que deseas eliminar completamente la lista "${listaEliminada}"?`);
+            if (!confirmar) return;
+            localStorage.removeItem("registroArticulos_" + listaEliminada);
+            listas = listas.filter(l => l !== listaEliminada);
+            localStorage.setItem("listasNombres", JSON.stringify(listas));
+            listaActual = listas[0] || "Lista 1";
+            localStorage.setItem("listaActual", listaActual);
+            cargarListas();
+        }
 
-        // 🔢 Cantidad
-        const tdCant = document.createElement("td");
-        const inCant = document.createElement("input");
-        inCant.type = "number";
-        inCant.value = data.cantidad || 0;
-        inCant.onchange = actualizarTotales;
-        tdCant.appendChild(inCant);
-        tr.appendChild(tdCant);
+        function cambiarLista() {
+            listaActual = listaSelect.value;
+            localStorage.setItem("listaActual", listaActual);
+            cargarDatos();
+        }
 
-        // 💲 Precio
-        const tdPrecio = document.createElement("td");
-        const inPrecio = document.createElement("input");
-        inPrecio.type = "number";
-        inPrecio.value = data.precio || 0;
-        inPrecio.onchange = actualizarTotales;
-        tdPrecio.appendChild(inPrecio);
-        tr.appendChild(tdPrecio);
+        function convertirDriveURL(url) {
+            if (!url) return "";
+            const match = url.match(/(?:file\/d\/|id=)([a-zA-Z0-9_-]{10,})/);
+            if (match && match[1]) return `https://lh3.googleusercontent.com/d/${match[1]}=s800`;
+            return url;
+        }
 
-        // 🧮 Total
-        const tdTotal = document.createElement("td");
-        tdTotal.className = "total";
-        tdTotal.textContent = "$0";
-        tr.appendChild(tdTotal);
+        // ✅ Agregar fila con número consecutivo automático
+        function agregarFila(data = {}) {
+            const tr = document.createElement("tr");
 
-        // 💵 Pago
-        const tdPago = document.createElement("td");
-        const inPago = document.createElement("input");
-        inPago.type = "number";
-        inPago.value = data.pago || 0;
-        inPago.onchange = actualizarTotales;
-        tdPago.appendChild(inPago);
-        tr.appendChild(tdPago);
+            // 🔢 Número de registro (se reenumera automáticamente)
+            const tdNum = document.createElement("td");
+            tdNum.className = "numeroRegistro";
+            tdNum.textContent = tablaBody.rows.length + 1;
+            tr.appendChild(tdNum);
 
-        // 📅 Fecha
-        const tdFecha = document.createElement("td");
-        const inFecha = document.createElement("input");
-        inFecha.type = "date";
-        inFecha.value = data.fecha || "";
-        tdFecha.appendChild(inFecha);
-        tr.appendChild(tdFecha);
+            // 📸 Imagen
+            const tdFoto = document.createElement("td");
+            const inUrl = document.createElement("input");
+            inUrl.type = "text";
+            inUrl.placeholder = "Pega el enlace de la imagen";
+            inUrl.value = data.imagen || "";
+            tdFoto.appendChild(inUrl);
 
-        // ❗ Deuda (permite negativos)
-        const tdDeuda = document.createElement("td");
-        tdDeuda.className = "deuda";
-        tdDeuda.textContent = "$0";
-        tr.appendChild(tdDeuda);
+            function mostrarImagen(url) {
+                if (!url.trim()) return;
+                url = convertirDriveURL(url);
+                let img = tdFoto.querySelector("img.preview");
+                if (!img) {
+                    img = document.createElement("img");
+                    img.className = "preview";
+                    tdFoto.appendChild(img);
+                }
+                img.src = url.trim();
+                activarCambioImagen(img, inUrl);
+                inUrl.style.display = "none";
+            }
 
-        // 📊 Estado
-        const tdEstado = document.createElement("td");
-        const sel = document.createElement("select");
-        sel.className = "estado";
-        sel.innerHTML = `
+            inUrl.onchange = () => mostrarImagen(inUrl.value);
+            if (data.imagen) mostrarImagen(data.imagen);
+            tr.appendChild(tdFoto);
+
+            // 🎵 Álbum
+            const tdAlbum = document.createElement("td");
+            const inAlbum = document.createElement("input");
+            inAlbum.type = "text";
+            inAlbum.value = data.articulo || "";
+            inAlbum.onchange = actualizarTotales;
+            tdAlbum.appendChild(inAlbum);
+            tr.appendChild(tdAlbum);
+
+            // 🔢 Cantidad
+            const tdCant = document.createElement("td");
+            const inCant = document.createElement("input");
+            inCant.type = "number";
+            inCant.value = data.cantidad || 0;
+            inCant.onchange = actualizarTotales;
+            tdCant.appendChild(inCant);
+            tr.appendChild(tdCant);
+
+            // 💲 Precio
+            const tdPrecio = document.createElement("td");
+            const inPrecio = document.createElement("input");
+            inPrecio.type = "number";
+            inPrecio.value = data.precio || 0;
+            inPrecio.onchange = actualizarTotales;
+            tdPrecio.appendChild(inPrecio);
+            tr.appendChild(tdPrecio);
+
+            // 🧮 Total
+            const tdTotal = document.createElement("td");
+            tdTotal.className = "total";
+            tdTotal.textContent = "$0";
+            tr.appendChild(tdTotal);
+
+            // 💵 Pago
+            const tdPago = document.createElement("td");
+            const inPago = document.createElement("input");
+            inPago.type = "number";
+            inPago.value = data.pago || 0;
+            inPago.onchange = actualizarTotales;
+            tdPago.appendChild(inPago);
+            tr.appendChild(tdPago);
+
+            // 📅 Fecha
+            const tdFecha = document.createElement("td");
+            const inFecha = document.createElement("input");
+            inFecha.type = "date";
+            inFecha.value = data.fecha || "";
+            tdFecha.appendChild(inFecha);
+            tr.appendChild(tdFecha);
+
+            // ❗ Deuda (permite negativos)
+            const tdDeuda = document.createElement("td");
+            tdDeuda.className = "deuda";
+            tdDeuda.textContent = "$0";
+            tr.appendChild(tdDeuda);
+
+            // 📊 Estado
+            const tdEstado = document.createElement("td");
+            const sel = document.createElement("select");
+            sel.className = "estado";
+            sel.innerHTML = `
             <option ${data.estado === "Pagado" ? "selected" : ""}>Pagado</option>
             <option ${data.estado === "No Pagado" ? "selected" : ""}>No Pagado</option>`;
-        tdEstado.appendChild(sel);
-        tr.appendChild(tdEstado);
+            tdEstado.appendChild(sel);
+            tr.appendChild(tdEstado);
 
-        // 🗑️ Acciones
-        const tdAcc = document.createElement("td");
-        const btnDel = document.createElement("button");
-        btnDel.textContent = "❌";
-        btnDel.onclick = function () { eliminarFila(btnDel); };
-        tdAcc.appendChild(btnDel);
-        tr.appendChild(tdAcc);
+            // 🗑️ Acciones
+            const tdAcc = document.createElement("td");
+            const btnDel = document.createElement("button");
+            btnDel.textContent = "❌";
+            btnDel.onclick = function () { eliminarFila(btnDel); };
+            tdAcc.appendChild(btnDel);
+            tr.appendChild(tdAcc);
 
-        tablaBody.appendChild(tr);
-        actualizarTotales();
-    }
+            tablaBody.appendChild(tr);
+            actualizarTotales();
+        }
 
-    // ✅ Reenumera los registros después de eliminar o cargar datos
-    function actualizarNumerosRegistro() {
-        const filas = tablaBody.querySelectorAll("tr");
-        filas.forEach((fila, index) => {
-            const celda = fila.querySelector(".numeroRegistro");
-            if (celda) celda.textContent = index + 1;
-        });
-    }
-
-    function eliminarFila(boton) {
-        boton.closest("tr").remove();
-        actualizarNumerosRegistro();
-        actualizarTotales();
-    }
-
-    function activarCambioImagen(img, input) {
-        img.onclick = function () {
-            const modal = document.createElement("div");
-            modal.className = "modal";
-            const content = document.createElement("div");
-            content.className = "modal-content";
-            const bigImg = document.createElement("img");
-            bigImg.className = "modal-img";
-            bigImg.src = img.src;
-            const buttons = document.createElement("div");
-            buttons.className = "modal-buttons";
-            const btnCambiar = document.createElement("button");
-            btnCambiar.textContent = "Cambiar enlace";
-            const btnCerrar = document.createElement("button");
-            btnCerrar.textContent = "Cerrar";
-            buttons.appendChild(btnCambiar);
-            buttons.appendChild(btnCerrar);
-            content.appendChild(bigImg);
-            content.appendChild(buttons);
-            modal.appendChild(content);
-            document.body.appendChild(modal);
-            btnCerrar.onclick = () => modal.remove();
-            btnCambiar.onclick = () => {
-                const nueva = prompt("Pega el nuevo enlace de imagen:");
-                if (nueva) {
-                    const convertida = convertirDriveURL(nueva);
-                    img.src = convertida;
-                    input.value = convertida;
-                    bigImg.src = convertida;
-                }
-            };
-        };
-    }
-
-    function actualizarTotales() {
-        let totalGeneral = 0, totalPagos = 0, totalDeuda = 0;
-        const filas = tablaBody.querySelectorAll("tr");
-        filas.forEach(fila => {
-            const cantidad = parseFloat(fila.children[3].querySelector("input").value) || 0;
-            const precio = parseFloat(fila.children[4].querySelector("input").value) || 0;
-            const pago = parseFloat(fila.children[6].querySelector("input").value) || 0;
-            const total = cantidad * precio;
-            const deuda = total - pago; // ✅ permite negativos
-            fila.children[5].textContent = `$${total.toFixed(2)}`;
-            fila.children[8].textContent = `$${deuda.toFixed(2)}`;
-            totalGeneral += total;
-            totalPagos += pago;
-            totalDeuda += deuda;
-        });
-        resumen.innerHTML = `💰 Total General: $${totalGeneral.toFixed(2)} &nbsp;|&nbsp; 💵 Total Pagos: $${totalPagos.toFixed(2)} &nbsp;|&nbsp; ❗ Total Deuda: $${totalDeuda.toFixed(2)}`;
-    }
-
-    function guardarDatos() {
-        const filas = tablaBody.querySelectorAll("tr");
-        const datos = [];
-        filas.forEach(fila => {
-            const imgEl = fila.children[1].querySelector("img.preview");
-            const imgSrc = imgEl ? imgEl.src : "";
-            datos.push({
-                idRegistro: parseInt(fila.children[0].textContent),
-                imagen: imgSrc,
-                articulo: fila.children[2].querySelector("input").value,
-                cantidad: fila.children[3].querySelector("input").value,
-                precio: fila.children[4].querySelector("input").value,
-                pago: fila.children[6].querySelector("input").value,
-                fecha: fila.children[7].querySelector("input").value,
-                estado: fila.children[9].querySelector("select").value
+        // ✅ Reenumera los registros después de eliminar o cargar datos
+        function actualizarNumerosRegistro() {
+            const filas = tablaBody.querySelectorAll("tr");
+            filas.forEach((fila, index) => {
+                const celda = fila.querySelector(".numeroRegistro");
+                if (celda) celda.textContent = index + 1;
             });
-        });
-        localStorage.setItem("registroArticulos_" + listaActual, JSON.stringify(datos));
-        alert("✅ Datos guardados en " + listaActual);
-    }
+        }
 
-    function cargarDatos() {
-        tablaBody.innerHTML = "";
-        const datos = JSON.parse(localStorage.getItem("registroArticulos_" + listaActual) || "[]");
-        datos.forEach(fila => agregarFila(fila));
-        actualizarNumerosRegistro(); // 🔢 Ajusta los números después de cargar
-        actualizarTotales();
-    }
+        function eliminarFila(boton) {
+            boton.closest("tr").remove();
+            actualizarNumerosRegistro();
+            actualizarTotales();
+        }
 
-    function borrarDatos() {
-        if (!confirm("¿Seguro que deseas borrar todos los registros de " + listaActual + "?")) return;
-        localStorage.removeItem("registroArticulos_" + listaActual);
-        tablaBody.innerHTML = "";
-        actualizarTotales();
-    }
+        function activarCambioImagen(img, input) {
+            img.onclick = function () {
+                const modal = document.createElement("div");
+                modal.className = "modal";
+                const content = document.createElement("div");
+                content.className = "modal-content";
+                const bigImg = document.createElement("img");
+                bigImg.className = "modal-img";
+                bigImg.src = img.src;
+                const buttons = document.createElement("div");
+                buttons.className = "modal-buttons";
+                const btnCambiar = document.createElement("button");
+                btnCambiar.textContent = "Cambiar enlace";
+                const btnCerrar = document.createElement("button");
+                btnCerrar.textContent = "Cerrar";
+                buttons.appendChild(btnCambiar);
+                buttons.appendChild(btnCerrar);
+                content.appendChild(bigImg);
+                content.appendChild(buttons);
+                modal.appendChild(content);
+                document.body.appendChild(modal);
+                btnCerrar.onclick = () => modal.remove();
+                btnCambiar.onclick = () => {
+                    const nueva = prompt("Pega el nuevo enlace de imagen:");
+                    if (nueva) {
+                        const convertida = convertirDriveURL(nueva);
+                        img.src = convertida;
+                        input.value = convertida;
+                        bigImg.src = convertida;
+                    }
+                };
+            };
+        }
 
-    cargarListas();
-</script>
+        // ✅ Pinta de verde las filas con estado "Pagado" y quita el color si es "No Pagado"
+        function actualizarColorFilas() {
+            const filas = tablaBody.querySelectorAll("tr");
+            filas.forEach(fila => {
+                const estadoSelect = fila.children[9].querySelector("select");
+                const estado = estadoSelect.value;
+
+                // Agrega o quita la clase según el estado
+                if (estado === "Pagado") {
+                    fila.classList.add("pagado");
+                } else {
+                    fila.classList.remove("pagado");
+                }
+
+                // Si el usuario cambia el estado manualmente, también se actualiza
+                estadoSelect.onchange = () => {
+                    if (estadoSelect.value === "Pagado") {
+                        fila.classList.add("pagado");
+                    } else {
+                        fila.classList.remove("pagado");
+                    }
+                    actualizarTotales(); // mantiene totales actualizados
+                };
+            });
+        }
+
+        function actualizarTotales() {
+            let totalGeneral = 0, totalPagos = 0, totalDeuda = 0;
+            const filas = tablaBody.querySelectorAll("tr");
+            filas.forEach(fila => {
+                const cantidad = parseFloat(fila.children[3].querySelector("input").value) || 0;
+                const precio = parseFloat(fila.children[4].querySelector("input").value) || 0;
+                const pago = parseFloat(fila.children[6].querySelector("input").value) || 0;
+                const total = cantidad * precio;
+                const deuda = total - pago; // ✅ permite negativos
+                fila.children[5].textContent = `$${total.toFixed(2)}`;
+                fila.children[8].textContent = `$${deuda.toFixed(2)}`;
+                totalGeneral += total;
+                totalPagos += pago;
+                totalDeuda += deuda;
+            });
+            resumen.innerHTML = `💰 Total General: $${totalGeneral.toFixed(2)} &nbsp;|&nbsp; 💵 Total Pagos: $${totalPagos.toFixed(2)} &nbsp;|&nbsp; ❗ Total Deuda: $${totalDeuda.toFixed(2)}`;
+
+            actualizarColorFilas();
+        }
+
+        function guardarDatos() {
+            const filas = tablaBody.querySelectorAll("tr");
+            const datos = [];
+            filas.forEach(fila => {
+                const imgEl = fila.children[1].querySelector("img.preview");
+                const imgSrc = imgEl ? imgEl.src : "";
+                datos.push({
+                    idRegistro: parseInt(fila.children[0].textContent),
+                    imagen: imgSrc,
+                    articulo: fila.children[2].querySelector("input").value,
+                    cantidad: fila.children[3].querySelector("input").value,
+                    precio: fila.children[4].querySelector("input").value,
+                    pago: fila.children[6].querySelector("input").value,
+                    fecha: fila.children[7].querySelector("input").value,
+                    estado: fila.children[9].querySelector("select").value
+                });
+            });
+            localStorage.setItem("registroArticulos_" + listaActual, JSON.stringify(datos));
+            alert("✅ Datos guardados en " + listaActual);
+        }
+
+        function cargarDatos() {
+            tablaBody.innerHTML = "";
+            const datos = JSON.parse(localStorage.getItem("registroArticulos_" + listaActual) || "[]");
+            datos.forEach(fila => agregarFila(fila));
+            actualizarNumerosRegistro(); // 🔢 Ajusta los números después de cargar
+            actualizarTotales();
+            actualizarColorFilas();
+        }
+
+        function borrarDatos() {
+            if (!confirm("¿Seguro que deseas borrar todos los registros de " + listaActual + "?")) return;
+            localStorage.removeItem("registroArticulos_" + listaActual);
+            tablaBody.innerHTML = "";
+            actualizarTotales();
+        }
+
+        cargarListas();
+    </script>
 
 
 </body>

@@ -60,13 +60,11 @@
             width: 60px;
         }
 
-        /* foto angosta */
         th:nth-child(2),
         td:nth-child(2) {
             width: 250px;
         }
 
-        /* álbum más ancho */
         th {
             background: #007bff;
             color: white;
@@ -112,7 +110,6 @@
             transform: scale(1.2);
         }
 
-        /* modal */
         .modal {
             position: fixed;
             top: 0;
@@ -171,6 +168,7 @@
         <label for="listaSelect">Seleccionar lista:</label>
         <select id="listaSelect" onchange="cambiarLista()"></select>
         <button onclick="nuevaLista()">➕ Nueva Lista</button>
+        <button onclick="eliminarLista()">🗑️ Eliminar Lista</button>
     </div>
 
     <table id="tabla">
@@ -194,7 +192,7 @@
     <div style="margin-bottom: 10px;">
         <button onclick="agregarFila()">➕ Agregar fila</button>
         <button onclick="guardarDatos()">💾 Guardar</button>
-        <button onclick="borrarDatos()">🗑️ Borrar lista</button>
+        <button onclick="borrarDatos()">🧹 Borrar registros</button>
     </div>
 
     <div id="resumen">
@@ -234,33 +232,47 @@
             cargarListas();
         }
 
+        // ✅ FUNCIÓN CORREGIDA: eliminar lista mostrando el nombre eliminado
+        function eliminarLista() {
+            if (!listaActual) return alert("❗ No hay ninguna lista seleccionada.");
+
+            const listaEliminada = listaActual;
+            const confirmar = confirm(`⚠️ ¿Seguro que deseas eliminar completamente la lista "${listaEliminada}"? Esta acción no se puede deshacer.`);
+            if (!confirmar) return;
+
+            localStorage.removeItem("registroArticulos_" + listaEliminada);
+            listas = listas.filter(l => l !== listaEliminada);
+            localStorage.setItem("listasNombres", JSON.stringify(listas));
+
+            if (listas.length === 0) {
+                listas = ["Lista 1"];
+                listaActual = "Lista 1";
+                alert(`✅ La lista "${listaEliminada}" fue eliminada. Se ha creado una nueva lista llamada "Lista 1".`);
+            } else {
+                listaActual = listas[0];
+                alert(`✅ La lista "${listaEliminada}" fue eliminada correctamente.`);
+            }
+
+            localStorage.setItem("listasNombres", JSON.stringify(listas));
+            localStorage.setItem("listaActual", listaActual);
+            cargarListas();
+        }
+
         function cambiarLista() {
             listaActual = listaSelect.value;
             localStorage.setItem("listaActual", listaActual);
             cargarDatos();
         }
 
-        // ✅ Convierte cualquier tipo de enlace de Google Drive en uno visible
         function convertirDriveURL(url) {
             if (!url) return "";
-
-            // Buscar el ID del archivo en los distintos tipos de enlaces
             const match = url.match(/(?:file\/d\/|id=)([a-zA-Z0-9_-]{10,})/);
-            if (match && match[1]) {
-                const id = match[1];
-                // Enlace directo visible (imagen embebible)
-                return `https://lh3.googleusercontent.com/d/${id}=s800`;
-            }
-
-            // Si no es de Drive, devolver tal cual
+            if (match && match[1]) return `https://lh3.googleusercontent.com/d/${match[1]}=s800`;
             return url;
         }
 
-
         function agregarFila(data = {}) {
             const tr = document.createElement("tr");
-
-            // FOTO CON URL
             const tdFoto = document.createElement("td");
             const inUrl = document.createElement("input");
             inUrl.type = "text";
@@ -271,7 +283,7 @@
 
             function mostrarImagen(url) {
                 if (!url.trim()) return;
-                url = convertirDriveURL(url); // convierte si es de Drive
+                url = convertirDriveURL(url);
                 let img = tdFoto.querySelector("img.preview");
                 if (!img) {
                     img = document.createElement("img");
@@ -287,7 +299,6 @@
             if (data.imagen) mostrarImagen(data.imagen);
             tr.appendChild(tdFoto);
 
-            // resto igual
             const tdAlbum = document.createElement("td");
             const inAlbum = document.createElement("input");
             inAlbum.type = "text";
@@ -298,14 +309,18 @@
 
             const tdCant = document.createElement("td");
             const inCant = document.createElement("input");
-            inCant.type = "number"; inCant.min = 0; inCant.value = data.cantidad || 0;
+            inCant.type = "number";
+            inCant.min = 0;
+            inCant.value = data.cantidad || 0;
             inCant.onchange = actualizarTotales;
             tdCant.appendChild(inCant);
             tr.appendChild(tdCant);
 
             const tdPrecio = document.createElement("td");
             const inPrecio = document.createElement("input");
-            inPrecio.type = "number"; inPrecio.min = 0; inPrecio.value = data.precio || 0;
+            inPrecio.type = "number";
+            inPrecio.min = 0;
+            inPrecio.value = data.precio || 0;
             inPrecio.onchange = actualizarTotales;
             tdPrecio.appendChild(inPrecio);
             tr.appendChild(tdPrecio);
@@ -317,14 +332,17 @@
 
             const tdPago = document.createElement("td");
             const inPago = document.createElement("input");
-            inPago.type = "number"; inPago.min = 0; inPago.value = data.pago || 0;
+            inPago.type = "number";
+            inPago.min = 0;
+            inPago.value = data.pago || 0;
             inPago.onchange = actualizarTotales;
             tdPago.appendChild(inPago);
             tr.appendChild(tdPago);
 
             const tdFecha = document.createElement("td");
             const inFecha = document.createElement("input");
-            inFecha.type = "date"; inFecha.value = data.fecha || "";
+            inFecha.type = "date";
+            inFecha.value = data.fecha || "";
             inFecha.onchange = actualizarTotales;
             tdFecha.appendChild(inFecha);
             tr.appendChild(tdFecha);
@@ -338,7 +356,7 @@
             const sel = document.createElement("select");
             sel.className = "estado";
             sel.innerHTML = `<option ${data.estado === "Pagado" ? "selected" : ""}>Pagado</option>
-                     <option ${data.estado === "No Pagado" ? "selected" : ""}>No Pagado</option>`;
+                             <option ${data.estado === "No Pagado" ? "selected" : ""}>No Pagado</option>`;
             tdEstado.appendChild(sel);
             tr.appendChild(tdEstado);
 
@@ -454,5 +472,4 @@
         cargarListas();
     </script>
 </body>
-
 </html>

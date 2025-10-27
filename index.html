@@ -418,22 +418,44 @@
         }
 
         function actualizarTotales() {
-            let totalGeneral = 0, totalPagos = 0, totalDeuda = 0;
-            const filas = tablaBody.querySelectorAll("tr");
-            filas.forEach(fila => {
-                const cantidad = parseFloat(fila.children[2].querySelector("input").value) || 0;
-                const precio = parseFloat(fila.children[3].querySelector("input").value) || 0;
-                const pago = parseFloat(fila.children[5].querySelector("input").value) || 0;
-                const total = cantidad * precio;
-                const deuda = Math.max(0, total - pago);
-                fila.children[4].textContent = `$${total.toFixed(2)}`;
-                fila.children[7].textContent = `$${deuda.toFixed(2)}`;
-                totalGeneral += total;
-                totalPagos += pago;
-                totalDeuda += deuda;
-            });
-            resumen.innerHTML = `💰 Total General: $${totalGeneral.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp; 💵 Total Pagos: $${totalPagos.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp; ❗ Total Deuda: $${totalDeuda.toFixed(2)}`;
-        }
+    let totalGeneral = 0, totalPagos = 0, totalDeuda = 0;
+    const filas = tablaBody.querySelectorAll("tr");
+
+    filas.forEach((fila, index) => {
+        // 🔹 Leer y limpiar valores
+        const cantidad = parseFloat((fila.children[2].querySelector("input").value || "0").replace(",", "."));
+        const precio = parseFloat((fila.children[3].querySelector("input").value || "0").replace(",", "."));
+        const pago = parseFloat((fila.children[5].querySelector("input").value || "0").replace(",", "."));
+
+        const cant = isNaN(cantidad) ? 0 : cantidad;
+        const prec = isNaN(precio) ? 0 : precio;
+        const pag = isNaN(pago) ? 0 : pago;
+
+        // 🔹 Calcular total y deuda (permitiendo negativos)
+        const total = cant * prec;
+        const deuda = total - pag;  // ← aquí permitimos valores negativos
+
+        // 🔹 Mostrar valores en la tabla
+        fila.children[4].textContent = `$${total.toFixed(2)}`;
+        fila.children[7].textContent = `$${deuda.toFixed(2)}`;
+
+        // 🔹 Acumular totales
+        totalGeneral += total;
+        totalPagos += pag;
+        totalDeuda += deuda;
+
+        // 🔹 Mostrar en consola (opcional para revisar)
+        console.log(`Fila ${index + 1}: cantidad=${cant}, precio=${prec}, total=${total}, pago=${pag}, deuda=${deuda}`);
+    });
+
+    // 🔹 Mostrar resumen general
+    resumen.innerHTML = `
+        💰 Total General: $${totalGeneral.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp;
+        💵 Total Pagos: $${totalPagos.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp;
+        ❗ Total Deuda: $${totalDeuda.toFixed(2)}
+    `;
+}
+
 
         function guardarDatos() {
             const filas = tablaBody.querySelectorAll("tr");
@@ -472,4 +494,5 @@
         cargarListas();
     </script>
 </body>
+
 </html>

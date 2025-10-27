@@ -1,334 +1,490 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Registro de Álbumes</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background: #f8f9fa; color: #333; }
-        h1 { text-align: center; margin-bottom: 20px; }
-        select, button { margin: 5px; padding: 6px 10px; border-radius: 4px; border: 1px solid #aaa; font-size: 14px; }
-        button { background: #007bff; color: white; border: none; cursor: pointer; }
-        button:hover { background: #0056b3; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); table-layout: fixed; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; vertical-align: middle; word-wrap: break-word; }
-        th:first-child, td:first-child { width: 60px; } /* foto angosta */
-        th:nth-child(2), td:nth-child(2) { width: 250px; } /* álbum más ancho */
-        th { background: #007bff; color: white; }
-        input[type="text"], input[type="number"], input[type="date"], select.estado { width:100%; box-sizing:border-box; padding:6px; }
-        #resumen { font-weight:bold; font-size:1.1em; text-align:right; margin-top:10px; background:#fff; padding:10px; border-radius:8px; box-shadow:0 0 5px rgba(0,0,0,0.1); }
-        .acciones button { margin:2px; }
-        img.preview { width:40px; height:40px; object-fit:cover; border-radius:5px; border:1px solid #ccc; display:block; margin:3px auto; cursor:pointer; transition: transform .15s ease; }
-        img.preview:hover { transform: scale(1.2); }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        select,
+        button {
+            margin: 5px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid #aaa;
+            font-size: 14px;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            table-layout: fixed;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            vertical-align: middle;
+            word-wrap: break-word;
+        }
+
+        th:first-child,
+        td:first-child {
+            width: 60px;
+        }
+
+        /* foto angosta */
+        th:nth-child(2),
+        td:nth-child(2) {
+            width: 250px;
+        }
+
+        /* álbum más ancho */
+        th {
+            background: #007bff;
+            color: white;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select.estado {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 6px;
+        }
+
+        #resumen {
+            font-weight: bold;
+            font-size: 1.1em;
+            text-align: right;
+            margin-top: 10px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .acciones button {
+            margin: 2px;
+        }
+
+        img.preview {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            display: block;
+            margin: 3px auto;
+            cursor: pointer;
+            transition: transform .15s ease;
+        }
+
+        img.preview:hover {
+            transform: scale(1.2);
+        }
+
         /* modal */
-        .modal { position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:9999; }
-        .modal-content { background:#fff; padding:14px; border-radius:8px; max-width:90vw; max-height:90vh; text-align:center; }
-        .modal-img { max-width:80vw; max-height:70vh; border-radius:6px; display:block; margin:0 auto 8px; }
-        .modal-buttons { margin-top:8px; }
-        .modal-buttons button { margin:6px; padding:8px 12px; border-radius:6px; border:none; background:#007bff; color:#fff; cursor:pointer; }
-        .modal-buttons button:hover { background:#0056b3; }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 14px;
+            border-radius: 8px;
+            max-width: 90vw;
+            max-height: 90vh;
+            text-align: center;
+        }
+
+        .modal-img {
+            max-width: 80vw;
+            max-height: 70vh;
+            border-radius: 6px;
+            display: block;
+            margin: 0 auto 8px;
+        }
+
+        .modal-buttons {
+            margin-top: 8px;
+        }
+
+        .modal-buttons button {
+            margin: 6px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: none;
+            background: #007bff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .modal-buttons button:hover {
+            background: #0056b3;
+        }
+
         /* hide file input small */
-        td input[type="file"] { font-size: 12px; width: 60px; margin: 6px auto; display:block; }
+        td input[type="file"] {
+            font-size: 12px;
+            width: 60px;
+            margin: 6px auto;
+            display: block;
+        }
     </style>
 </head>
+
 <body>
 
-<h1>📦 Registro de Álbumes</h1>
+    <h1>📦 Registro de Álbumes</h1>
 
-<div style="text-align:center;">
-    <label for="listaSelect">Seleccionar lista:</label>
-    <select id="listaSelect" onchange="cambiarLista()"></select>
-    <button onclick="nuevaLista()">➕ Nueva Lista</button>
-</div>
+    <div style="text-align:center;">
+        <label for="listaSelect">Seleccionar lista:</label>
+        <select id="listaSelect" onchange="cambiarLista()"></select>
+        <button onclick="nuevaLista()">➕ Nueva Lista</button>
+    </div>
 
-<table id="tabla">
-    <thead>
-        <tr>
-            <th>Foto</th>
-            <th>Álbum</th>
-            <th>Cantidad</th>
-            <th>Precio Unitario ($)</th>
-            <th>Total ($)</th>
-            <th>Pago ($)</th>
-            <th>Fecha de Pago</th>
-            <th>Deuda ($)</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody id="tablaBody"></tbody>
-</table>
+    <table id="tabla">
+        <thead>
+            <tr>
+                <th>Foto</th>
+                <th>Álbum</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario ($)</th>
+                <th>Total ($)</th>
+                <th>Pago ($)</th>
+                <th>Fecha de Pago</th>
+                <th>Deuda ($)</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="tablaBody"></tbody>
+    </table>
 
-<div style="margin-bottom: 10px;">
-    <button onclick="agregarFila()">➕ Agregar fila</button>
-    <button onclick="guardarDatos()">💾 Guardar</button>
-    <button onclick="borrarDatos()">🗑️ Borrar lista</button>
-</div>
+    <div style="margin-bottom: 10px;">
+        <button onclick="agregarFila()">➕ Agregar fila</button>
+        <button onclick="guardarDatos()">💾 Guardar</button>
+        <button onclick="borrarDatos()">🗑️ Borrar lista</button>
+    </div>
 
-<div id="resumen">
-    💰 Total General: $0 &nbsp;&nbsp;|&nbsp;&nbsp;
-    💵 Total Pagos: $0 &nbsp;&nbsp;|&nbsp;&nbsp;
-    ❗ Total Deuda: $0
-</div>
+    <div id="resumen">
+        💰 Total General: $0 &nbsp;&nbsp;|&nbsp;&nbsp;
+        💵 Total Pagos: $0 &nbsp;&nbsp;|&nbsp;&nbsp;
+        ❗ Total Deuda: $0
+    </div>
 
-<script>
-const tablaBody = document.getElementById("tablaBody");
-const resumen = document.getElementById("resumen");
-const listaSelect = document.getElementById("listaSelect");
+    <script>
+        /* ----------------- referencias ----------------- */
+        const tablaBody = document.getElementById("tablaBody");
+        const resumen = document.getElementById("resumen");
+        const listaSelect = document.getElementById("listaSelect");
 
-let listas = JSON.parse(localStorage.getItem("listasNombres")) || ["Lista 1"];
-let listaActual = localStorage.getItem("listaActual") || "Lista 1";
+        let listas = JSON.parse(localStorage.getItem("listasNombres")) || ["Lista 1"];
+        let listaActual = localStorage.getItem("listaActual") || "Lista 1";
 
-function cargarListas(){
-    listaSelect.innerHTML = "";
-    listas.forEach(nombre => {
-        const opt = document.createElement("option");
-        opt.value = nombre;
-        opt.textContent = nombre;
-        if(nombre === listaActual) opt.selected = true;
-        listaSelect.appendChild(opt);
-    });
-    cargarDatos();
-}
-
-function nuevaLista(){
-    const nombre = prompt("Nombre de la nueva lista:");
-    if(!nombre) return;
-    if(listas.includes(nombre)){ alert("❗ Esa lista ya existe."); return; }
-    listas.push(nombre);
-    localStorage.setItem("listasNombres", JSON.stringify(listas));
-    listaActual = nombre;
-    localStorage.setItem("listaActual", listaActual);
-    cargarListas();
-}
-
-function cambiarLista(){
-    listaActual = listaSelect.value;
-    localStorage.setItem("listaActual", listaActual);
-    cargarDatos();
-}
-
-function agregarFila(data = {}){
-    const tr = document.createElement("tr");
-
-    const tdFoto = document.createElement("td");
-    const inputFile = document.createElement("input");
-    inputFile.type = "file";
-    inputFile.accept = "image/*";
-    inputFile.onchange = function(){ mostrarImagen(inputFile); };
-    if(data.imagen) inputFile.style.display = "none";
-    tdFoto.appendChild(inputFile);
-    if(data.imagen){
-        const img = document.createElement("img");
-        img.className = "preview";
-        img.src = data.imagen;
-        tdFoto.appendChild(img);
-        activarCambioImagen(img, inputFile);
-    }
-    tr.appendChild(tdFoto);
-
-    const tdAlbum = document.createElement("td");
-    const inAlbum = document.createElement("input");
-    inAlbum.type = "text";
-    inAlbum.value = data.articulo || "";
-    inAlbum.onchange = actualizarTotales;
-    tdAlbum.appendChild(inAlbum);
-    tr.appendChild(tdAlbum);
-
-    const tdCant = document.createElement("td");
-    const inCant = document.createElement("input");
-    inCant.type = "number"; inCant.min = 0; inCant.value = data.cantidad || 0;
-    inCant.onchange = actualizarTotales;
-    tdCant.appendChild(inCant);
-    tr.appendChild(tdCant);
-
-    const tdPrecio = document.createElement("td");
-    const inPrecio = document.createElement("input");
-    inPrecio.type = "number"; inPrecio.min = 0; inPrecio.value = data.precio || 0;
-    inPrecio.onchange = actualizarTotales;
-    tdPrecio.appendChild(inPrecio);
-    tr.appendChild(tdPrecio);
-
-    const tdTotal = document.createElement("td");
-    tdTotal.className = "total";
-    tdTotal.textContent = "$0";
-    tr.appendChild(tdTotal);
-
-    const tdPago = document.createElement("td");
-    const inPago = document.createElement("input");
-    inPago.type = "number"; inPago.min = 0; inPago.value = data.pago || 0;
-    inPago.onchange = actualizarTotales;
-    tdPago.appendChild(inPago);
-    tr.appendChild(tdPago);
-
-    const tdFecha = document.createElement("td");
-    const inFecha = document.createElement("input");
-    inFecha.type = "date"; inFecha.value = data.fecha || "";
-    inFecha.onchange = actualizarTotales;
-    tdFecha.appendChild(inFecha);
-    tr.appendChild(tdFecha);
-
-    const tdDeuda = document.createElement("td");
-    tdDeuda.className = "deuda";
-    tdDeuda.textContent = "$0";
-    tr.appendChild(tdDeuda);
-
-    const tdEstado = document.createElement("td");
-    const sel = document.createElement("select");
-    sel.className = "estado";
-    const op1 = document.createElement("option"); op1.textContent = "Pagado";
-    const op2 = document.createElement("option"); op2.textContent = "No Pagado";
-    if(data.estado === "Pagado") op1.selected = true;
-    if(data.estado === "No Pagado") op2.selected = true;
-    sel.appendChild(op1); sel.appendChild(op2);
-    tdEstado.appendChild(sel);
-    tr.appendChild(tdEstado);
-
-    const tdAcc = document.createElement("td");
-    tdAcc.className = "acciones";
-    const btnDel = document.createElement("button");
-    btnDel.textContent = "❌";
-    btnDel.onclick = function(){ eliminarFila(btnDel); };
-    tdAcc.appendChild(btnDel);
-    tr.appendChild(tdAcc);
-
-    tablaBody.appendChild(tr);
-    actualizarTotales();
-}
-
-/* 🔧 Corrección aquí: */
-function mostrarImagen(input){
-    const file = input.files && input.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e){
-        let img = input.parentElement.querySelector("img.preview");
-        if(!img){
-            img = document.createElement("img");
-            img.className = "preview";
-            input.parentElement.appendChild(img);
+        /* ---------- inicialización de listas ---------- */
+        function cargarListas() {
+            listaSelect.innerHTML = "";
+            listas.forEach(nombre => {
+                const opt = document.createElement("option");
+                opt.value = nombre;
+                opt.textContent = nombre;
+                if (nombre === listaActual) opt.selected = true;
+                listaSelect.appendChild(opt);
+            });
+            cargarDatos();
         }
-        img.src = e.target.result;
-        input.style.display = "none";
-        activarCambioImagen(img, input);
 
-        // Esperar a que se actualice la imagen antes de guardar
-        setTimeout(guardarDatos, 100);
-    };
-    reader.readAsDataURL(file);
-}
+        /* ---------- crear nueva lista ---------- */
+        function nuevaLista() {
+            const nombre = prompt("Nombre de la nueva lista:");
+            if (!nombre) return;
+            if (listas.includes(nombre)) { alert("❗ Esa lista ya existe."); return; }
+            listas.push(nombre);
+            localStorage.setItem("listasNombres", JSON.stringify(listas));
+            listaActual = nombre;
+            localStorage.setItem("listaActual", listaActual);
+            cargarListas();
+        }
 
-function activarCambioImagen(img, input){
-    img.onclick = function(){
-        const modal = document.createElement("div");
-        modal.className = "modal";
+        /* ---------- cambiar lista ---------- */
+        function cambiarLista() {
+            listaActual = listaSelect.value;
+            localStorage.setItem("listaActual", listaActual);
+            cargarDatos();
+        }
 
-        const content = document.createElement("div");
-        content.className = "modal-content";
+        /* ---------- agregar fila ---------- */
+        function agregarFila(data = {}) {
+            const tr = document.createElement("tr");
 
-        const bigImg = document.createElement("img");
-        bigImg.className = "modal-img";
-        bigImg.src = img.src;
+            // Celda foto
+            const tdFoto = document.createElement("td");
+            const inputFile = document.createElement("input");
+            inputFile.type = "file";
+            inputFile.accept = "image/*";
+            inputFile.onchange = function () { mostrarImagen(inputFile); };
+            if (data.imagen) inputFile.style.display = "none";
+            tdFoto.appendChild(inputFile);
 
-        const buttons = document.createElement("div");
-        buttons.className = "modal-buttons";
+            if (data.imagen) {
+                const img = document.createElement("img");
+                img.className = "preview";
+                img.src = data.imagen;
+                tdFoto.appendChild(img);
+                activarCambioImagen(img, inputFile);
+            }
+            tr.appendChild(tdFoto);
 
-        const btnCambiar = document.createElement("button");
-        btnCambiar.textContent = "Cambiar imagen";
-        const btnCerrar = document.createElement("button");
-        btnCerrar.textContent = "Cerrar";
+            // Álbum
+            const tdAlbum = document.createElement("td");
+            const inAlbum = document.createElement("input");
+            inAlbum.type = "text";
+            inAlbum.value = data.articulo || "";
+            inAlbum.onchange = actualizarTotales;
+            tdAlbum.appendChild(inAlbum);
+            tr.appendChild(tdAlbum);
 
-        buttons.appendChild(btnCambiar);
-        buttons.appendChild(btnCerrar);
+            // Cantidad
+            const tdCant = document.createElement("td");
+            const inCant = document.createElement("input");
+            inCant.type = "number"; inCant.min = 0; inCant.value = data.cantidad || 0;
+            inCant.onchange = actualizarTotales;
+            tdCant.appendChild(inCant);
+            tr.appendChild(tdCant);
 
-        content.appendChild(bigImg);
-        content.appendChild(buttons);
-        modal.appendChild(content);
-        document.body.appendChild(modal);
+            // Precio
+            const tdPrecio = document.createElement("td");
+            const inPrecio = document.createElement("input");
+            inPrecio.type = "number"; inPrecio.min = 0; inPrecio.value = data.precio || 0;
+            inPrecio.onchange = actualizarTotales;
+            tdPrecio.appendChild(inPrecio);
+            tr.appendChild(tdPrecio);
 
-        btnCerrar.onclick = () => modal.remove();
+            // Total
+            const tdTotal = document.createElement("td");
+            tdTotal.className = "total";
+            tdTotal.textContent = "$0";
+            tr.appendChild(tdTotal);
 
-        btnCambiar.onclick = () => {
-            const temp = document.createElement("input");
-            temp.type = "file"; temp.accept = "image/*";
-            temp.onchange = function(){
-                const f = temp.files && temp.files[0];
-                if(!f) return;
-                const r = new FileReader();
-                r.onload = function(ev){
-                    img.src = ev.target.result;
-                    bigImg.src = ev.target.result;
-                    input.style.display = "none";
-                    setTimeout(guardarDatos, 100);
-                };
-                r.readAsDataURL(f);
+            // Pago
+            const tdPago = document.createElement("td");
+            const inPago = document.createElement("input");
+            inPago.type = "number"; inPago.min = 0; inPago.value = data.pago || 0;
+            inPago.onchange = actualizarTotales;
+            tdPago.appendChild(inPago);
+            tr.appendChild(tdPago);
+
+            // Fecha
+            const tdFecha = document.createElement("td");
+            const inFecha = document.createElement("input");
+            inFecha.type = "date"; inFecha.value = data.fecha || "";
+            inFecha.onchange = actualizarTotales;
+            tdFecha.appendChild(inFecha);
+            tr.appendChild(tdFecha);
+
+            // Deuda
+            const tdDeuda = document.createElement("td");
+            tdDeuda.className = "deuda";
+            tdDeuda.textContent = "$0";
+            tr.appendChild(tdDeuda);
+
+            // Estado
+            const tdEstado = document.createElement("td");
+            const sel = document.createElement("select");
+            sel.className = "estado";
+            const op1 = document.createElement("option"); op1.textContent = "Pagado";
+            const op2 = document.createElement("option"); op2.textContent = "No Pagado";
+            if (data.estado === "Pagado") op1.selected = true;
+            if (data.estado === "No Pagado") op2.selected = true;
+            sel.appendChild(op1); sel.appendChild(op2);
+            tdEstado.appendChild(sel);
+            tr.appendChild(tdEstado);
+
+            // Acciones
+            const tdAcc = document.createElement("td");
+            tdAcc.className = "acciones";
+            const btnDel = document.createElement("button");
+            btnDel.textContent = "❌";
+            btnDel.onclick = function () { eliminarFila(btnDel); };
+            tdAcc.appendChild(btnDel);
+            tr.appendChild(tdAcc);
+
+            tablaBody.appendChild(tr);
+            actualizarTotales();
+        }
+
+        /* ---------- mostrar imagen ---------- */
+        function mostrarImagen(input) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                let img = input.parentElement.querySelector("img.preview");
+                if (!img) {
+                    img = document.createElement("img");
+                    img.className = "preview";
+                    input.parentElement.appendChild(img);
+                }
+                img.src = e.target.result;
+                input.style.display = "none";
+                activarCambioImagen(img, input);
             };
-            temp.click();
-        };
-    };
-}
+            reader.readAsDataURL(file);
+        }
 
-function eliminarFila(boton){
-    boton.closest("tr").remove();
-    actualizarTotales();
-    guardarDatos();
-}
+        /* ---------- modal imagen grande ---------- */
+        function activarCambioImagen(img, input) {
+            img.onclick = function () {
+                const modal = document.createElement("div");
+                modal.className = "modal";
 
-function actualizarTotales(){
-    let totalGeneral = 0, totalPagos = 0, totalDeuda = 0;
-    const filas = tablaBody.querySelectorAll("tr");
-    filas.forEach(fila => {
-        const cantidad = parseFloat(fila.children[2].querySelector("input").value) || 0;
-        const precio = parseFloat(fila.children[3].querySelector("input").value) || 0;
-        const pago = parseFloat(fila.children[5].querySelector("input").value) || 0;
-        const total = cantidad * precio;
-        const deuda = Math.max(0, total - pago);
-        fila.children[4].textContent = `$${total.toFixed(2)}`;
-        fila.children[7].textContent = `$${deuda.toFixed(2)}`;
-        totalGeneral += total;
-        totalPagos += pago;
-        totalDeuda += deuda;
-    });
-    resumen.innerHTML = `💰 Total General: $${totalGeneral.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp; 💵 Total Pagos: $${totalPagos.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp; ❗ Total Deuda: $${totalDeuda.toFixed(2)}`;
-}
+                const content = document.createElement("div");
+                content.className = "modal-content";
 
-function guardarDatos(){
-    const filas = tablaBody.querySelectorAll("tr");
-    const datos = [];
-    filas.forEach(fila => {
-        const imgEl = fila.children[0].querySelector("img.preview");
-        const imgSrc = imgEl ? imgEl.src : "";
-        datos.push({
-            imagen: imgSrc,
-            articulo: fila.children[1].querySelector("input").value,
-            cantidad: fila.children[2].querySelector("input").value,
-            precio: fila.children[3].querySelector("input").value,
-            pago: fila.children[5].querySelector("input").value,
-            fecha: fila.children[6].querySelector("input").value,
-            estado: fila.children[8].querySelector("select").value
-        });
-    });
-    localStorage.setItem("registroArticulos_" + listaActual, JSON.stringify(datos));
-}
+                const bigImg = document.createElement("img");
+                bigImg.className = "modal-img";
+                bigImg.src = img.src;
 
-function cargarDatos(){
-    tablaBody.innerHTML = "";
-    const datos = JSON.parse(localStorage.getItem("registroArticulos_" + listaActual) || "[]");
-    datos.forEach(fila => agregarFila(fila));
-    actualizarTotales();
-}
+                const buttons = document.createElement("div");
+                buttons.className = "modal-buttons";
 
-function borrarDatos(){
-    if(!confirm("¿Seguro que deseas borrar todos los registros de " + listaActual + "?")) return;
-    localStorage.removeItem("registroArticulos_" + listaActual);
-    tablaBody.innerHTML = "";
-    actualizarTotales();
-}
+                const btnCambiar = document.createElement("button");
+                btnCambiar.textContent = "Cambiar imagen";
+                const btnCerrar = document.createElement("button");
+                btnCerrar.textContent = "Cerrar";
 
-cargarListas();
+                buttons.appendChild(btnCambiar);
+                buttons.appendChild(btnCerrar);
+                content.appendChild(bigImg);
+                content.appendChild(buttons);
+                modal.appendChild(content);
+                document.body.appendChild(modal);
 
-document.querySelectorAll("button").forEach(b=>{
-    if(b.textContent.includes("💾")) b.onclick = function(){ guardarDatos(); alert("✅ Datos guardados en " + listaActual); };
-});
-</script>
+                btnCerrar.onclick = () => modal.remove();
+
+                btnCambiar.onclick = () => {
+                    const temp = document.createElement("input");
+                    temp.type = "file"; temp.accept = "image/*";
+                    temp.onchange = function () {
+                        const f = temp.files && temp.files[0];
+                        if (!f) return;
+                        const r = new FileReader();
+                        r.onload = function (ev) {
+                            img.src = ev.target.result;
+                            bigImg.src = ev.target.result;
+                            if (input) input.style.display = "none";
+                        };
+                        r.readAsDataURL(f);
+                    };
+                    temp.click();
+                };
+            };
+        }
+
+        /* ---------- eliminar fila ---------- */
+        function eliminarFila(boton) {
+            boton.closest("tr").remove();
+            actualizarTotales();
+        }
+
+        /* ---------- actualizar totales ---------- */
+        function actualizarTotales() {
+            let totalGeneral = 0, totalPagos = 0, totalDeuda = 0;
+            const filas = tablaBody.querySelectorAll("tr");
+            filas.forEach(fila => {
+                const cantidad = parseFloat(fila.children[2].querySelector("input").value) || 0;
+                const precio = parseFloat(fila.children[3].querySelector("input").value) || 0;
+                const pago = parseFloat(fila.children[5].querySelector("input").value) || 0;
+                const total = cantidad * precio;
+                const deuda = Math.max(0, total - pago);
+                fila.children[4].textContent = `$${total.toFixed(2)}`;
+                fila.children[7].textContent = `$${deuda.toFixed(2)}`;
+                totalGeneral += total;
+                totalPagos += pago;
+                totalDeuda += deuda;
+            });
+            resumen.innerHTML = `💰 Total General: $${totalGeneral.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp; 💵 Total Pagos: $${totalPagos.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp; ❗ Total Deuda: $${totalDeuda.toFixed(2)}`;
+        }
+
+        /* ---------- guardar datos ---------- */
+        function guardarDatos() {
+            const filas = tablaBody.querySelectorAll("tr");
+            const datos = [];
+            filas.forEach(fila => {
+                const imgEl = fila.children[0].querySelector("img.preview");
+                const imgSrc = imgEl ? imgEl.src : "";
+                datos.push({
+                    imagen: imgSrc,
+                    articulo: fila.children[1].querySelector("input").value,
+                    cantidad: fila.children[2].querySelector("input").value,
+                    precio: fila.children[3].querySelector("input").value,
+                    pago: fila.children[5].querySelector("input").value,
+                    fecha: fila.children[6].querySelector("input").value,
+                    estado: fila.children[8].querySelector("select").value
+                });
+            });
+            localStorage.setItem("registroArticulos_" + listaActual, JSON.stringify(datos));
+            alert("✅ Datos guardados en " + listaActual);
+        }
+
+        /* ---------- cargar datos ---------- */
+        function cargarDatos() {
+            tablaBody.innerHTML = "";
+            const datos = JSON.parse(localStorage.getItem("registroArticulos_" + listaActual) || "[]");
+            datos.forEach(fila => agregarFila(fila));
+            actualizarTotales();
+        }
+
+        /* ---------- borrar lista ---------- */
+        function borrarDatos() {
+            if (!confirm("¿Seguro que deseas borrar todos los registros de " + listaActual + "?")) return;
+            localStorage.removeItem("registroArticulos_" + listaActual);
+            tablaBody.innerHTML = "";
+            actualizarTotales();
+        }
+
+        /* ---------- inicial ---------- */
+        cargarListas();
+    </script>
 </body>
+
 </html>

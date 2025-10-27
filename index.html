@@ -71,7 +71,6 @@
 </div>
 
 <script>
-/* ----------------- referencias ----------------- */
 const tablaBody = document.getElementById("tablaBody");
 const resumen = document.getElementById("resumen");
 const listaSelect = document.getElementById("listaSelect");
@@ -79,7 +78,6 @@ const listaSelect = document.getElementById("listaSelect");
 let listas = JSON.parse(localStorage.getItem("listasNombres")) || ["Lista 1"];
 let listaActual = localStorage.getItem("listaActual") || "Lista 1";
 
-/* ---------- inicialización de listas ---------- */
 function cargarListas(){
     listaSelect.innerHTML = "";
     listas.forEach(nombre => {
@@ -92,7 +90,6 @@ function cargarListas(){
     cargarDatos();
 }
 
-/* ---------- crear nueva lista ---------- */
 function nuevaLista(){
     const nombre = prompt("Nombre de la nueva lista:");
     if(!nombre) return;
@@ -104,40 +101,31 @@ function nuevaLista(){
     cargarListas();
 }
 
-/* ---------- cambiar lista ---------- */
 function cambiarLista(){
     listaActual = listaSelect.value;
     localStorage.setItem("listaActual", listaActual);
     cargarDatos();
 }
 
-/* ---------- agregar fila (con data opcional) ---------- */
 function agregarFila(data = {}){
-    // Crear fila de forma segura para evitar problemas con innerHTML y listeners
     const tr = document.createElement("tr");
 
-    // Celda foto
     const tdFoto = document.createElement("td");
-    // input file
     const inputFile = document.createElement("input");
     inputFile.type = "file";
     inputFile.accept = "image/*";
     inputFile.onchange = function(){ mostrarImagen(inputFile); };
     if(data.imagen) inputFile.style.display = "none";
     tdFoto.appendChild(inputFile);
-    // img si viene
     if(data.imagen){
         const img = document.createElement("img");
         img.className = "preview";
         img.src = data.imagen;
         tdFoto.appendChild(img);
-        // activar modal/cambiar
         activarCambioImagen(img, inputFile);
     }
-
     tr.appendChild(tdFoto);
 
-    // Album (columna 2)
     const tdAlbum = document.createElement("td");
     const inAlbum = document.createElement("input");
     inAlbum.type = "text";
@@ -146,7 +134,6 @@ function agregarFila(data = {}){
     tdAlbum.appendChild(inAlbum);
     tr.appendChild(tdAlbum);
 
-    // Cantidad
     const tdCant = document.createElement("td");
     const inCant = document.createElement("input");
     inCant.type = "number"; inCant.min = 0; inCant.value = data.cantidad || 0;
@@ -154,7 +141,6 @@ function agregarFila(data = {}){
     tdCant.appendChild(inCant);
     tr.appendChild(tdCant);
 
-    // Precio
     const tdPrecio = document.createElement("td");
     const inPrecio = document.createElement("input");
     inPrecio.type = "number"; inPrecio.min = 0; inPrecio.value = data.precio || 0;
@@ -162,13 +148,11 @@ function agregarFila(data = {}){
     tdPrecio.appendChild(inPrecio);
     tr.appendChild(tdPrecio);
 
-    // Total (texto)
     const tdTotal = document.createElement("td");
     tdTotal.className = "total";
     tdTotal.textContent = "$0";
     tr.appendChild(tdTotal);
 
-    // Pago
     const tdPago = document.createElement("td");
     const inPago = document.createElement("input");
     inPago.type = "number"; inPago.min = 0; inPago.value = data.pago || 0;
@@ -176,7 +160,6 @@ function agregarFila(data = {}){
     tdPago.appendChild(inPago);
     tr.appendChild(tdPago);
 
-    // Fecha
     const tdFecha = document.createElement("td");
     const inFecha = document.createElement("input");
     inFecha.type = "date"; inFecha.value = data.fecha || "";
@@ -184,13 +167,11 @@ function agregarFila(data = {}){
     tdFecha.appendChild(inFecha);
     tr.appendChild(tdFecha);
 
-    // Deuda
     const tdDeuda = document.createElement("td");
     tdDeuda.className = "deuda";
     tdDeuda.textContent = "$0";
     tr.appendChild(tdDeuda);
 
-    // Estado
     const tdEstado = document.createElement("td");
     const sel = document.createElement("select");
     sel.className = "estado";
@@ -202,7 +183,6 @@ function agregarFila(data = {}){
     tdEstado.appendChild(sel);
     tr.appendChild(tdEstado);
 
-    // Acciones
     const tdAcc = document.createElement("td");
     tdAcc.className = "acciones";
     const btnDel = document.createElement("button");
@@ -215,13 +195,12 @@ function agregarFila(data = {}){
     actualizarTotales();
 }
 
-/* ---------- mostrar imagen al seleccionar (lee base64) ---------- */
+/* 🔧 Corrección aquí: */
 function mostrarImagen(input){
     const file = input.files && input.files[0];
     if(!file) return;
     const reader = new FileReader();
     reader.onload = function(e){
-        // si ya hay img la actualizamos, sino creamos
         let img = input.parentElement.querySelector("img.preview");
         if(!img){
             img = document.createElement("img");
@@ -230,21 +209,16 @@ function mostrarImagen(input){
         }
         img.src = e.target.result;
         input.style.display = "none";
-        // activar modal y cambio
         activarCambioImagen(img, input);
-        // guardar inmediatamente (se guarda el base64)
-        guardarDatos();
+
+        // Esperar a que se actualice la imagen antes de guardar
+        setTimeout(guardarDatos, 100);
     };
     reader.readAsDataURL(file);
 }
 
-/* ---------- modal para ver imagen grande y cambiarla ---------- */
 function activarCambioImagen(img, input){
-    // remover handlers previos por seguridad
-    img.onclick = null;
-
     img.onclick = function(){
-        // crear modal
         const modal = document.createElement("div");
         modal.className = "modal";
 
@@ -271,10 +245,8 @@ function activarCambioImagen(img, input){
         modal.appendChild(content);
         document.body.appendChild(modal);
 
-        // cerrar
-        btnCerrar.onclick = () => { modal.remove(); };
+        btnCerrar.onclick = () => modal.remove();
 
-        // cambiar imagen: abrimos un input temporal
         btnCambiar.onclick = () => {
             const temp = document.createElement("input");
             temp.type = "file"; temp.accept = "image/*";
@@ -283,13 +255,10 @@ function activarCambioImagen(img, input){
                 if(!f) return;
                 const r = new FileReader();
                 r.onload = function(ev){
-                    // actualizar miniatura y modal
                     img.src = ev.target.result;
                     bigImg.src = ev.target.result;
-                    // si hay input original, mantenerlo oculto
-                    if(input) input.style.display = "none";
-                    // guardar cambios inmediatamente
-                    guardarDatos();
+                    input.style.display = "none";
+                    setTimeout(guardarDatos, 100);
                 };
                 r.readAsDataURL(f);
             };
@@ -298,14 +267,12 @@ function activarCambioImagen(img, input){
     };
 }
 
-/* ---------- eliminar fila ---------- */
 function eliminarFila(boton){
     boton.closest("tr").remove();
     actualizarTotales();
     guardarDatos();
 }
 
-/* ---------- actualizar totales ---------- */
 function actualizarTotales(){
     let totalGeneral = 0, totalPagos = 0, totalDeuda = 0;
     const filas = tablaBody.querySelectorAll("tr");
@@ -324,7 +291,6 @@ function actualizarTotales(){
     resumen.innerHTML = `💰 Total General: $${totalGeneral.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp; 💵 Total Pagos: $${totalPagos.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp; ❗ Total Deuda: $${totalDeuda.toFixed(2)}`;
 }
 
-/* ---------- guardar datos completa (incluye base64 de imagen si existe) ---------- */
 function guardarDatos(){
     const filas = tablaBody.querySelectorAll("tr");
     const datos = [];
@@ -342,24 +308,15 @@ function guardarDatos(){
         });
     });
     localStorage.setItem("registroArticulos_" + listaActual, JSON.stringify(datos));
-    // Nota: no hago alert cada vez para no molestar; el botón Guardar aún puede alertar si quieres
 }
 
-/* ---------- cargar datos desde localStorage y reestablecer listeners ---------- */
 function cargarDatos(){
     tablaBody.innerHTML = "";
     const datos = JSON.parse(localStorage.getItem("registroArticulos_" + listaActual) || "[]");
     datos.forEach(fila => agregarFila(fila));
-    // después de agregarlos, asegurar que los previews restaurados tengan su handler
-    tablaBody.querySelectorAll("tr").forEach(tr => {
-        const img = tr.querySelector("img.preview");
-        const input = tr.querySelector("input[type=file]");
-        if(img && input) activarCambioImagen(img, input);
-    });
     actualizarTotales();
 }
 
-/* ---------- borrar lista ---------- */
 function borrarDatos(){
     if(!confirm("¿Seguro que deseas borrar todos los registros de " + listaActual + "?")) return;
     localStorage.removeItem("registroArticulos_" + listaActual);
@@ -367,14 +324,11 @@ function borrarDatos(){
     actualizarTotales();
 }
 
-/* ---------- inicial ---------- */
 cargarListas();
 
-/* ---------- exponer guardarDatos al botón “Guardar” (opcional) ---------- */
 document.querySelectorAll("button").forEach(b=>{
     if(b.textContent.includes("💾")) b.onclick = function(){ guardarDatos(); alert("✅ Datos guardados en " + listaActual); };
 });
 </script>
-
 </body>
 </html>

@@ -160,14 +160,6 @@
         .modal-buttons button:hover {
             background: #0056b3;
         }
-
-        /* hide file input small */
-        td input[type="file"] {
-            font-size: 12px;
-            width: 60px;
-            margin: 6px auto;
-            display: block;
-        }
     </style>
 </head>
 
@@ -184,7 +176,7 @@
     <table id="tabla">
         <thead>
             <tr>
-                <th>Foto</th>
+                <th>Foto (URL)</th>
                 <th>Álbum</th>
                 <th>Cantidad</th>
                 <th>Precio Unitario ($)</th>
@@ -212,7 +204,6 @@
     </div>
 
     <script>
-        /* ----------------- referencias ----------------- */
         const tablaBody = document.getElementById("tablaBody");
         const resumen = document.getElementById("resumen");
         const listaSelect = document.getElementById("listaSelect");
@@ -220,7 +211,6 @@
         let listas = JSON.parse(localStorage.getItem("listasNombres")) || ["Lista 1"];
         let listaActual = localStorage.getItem("listaActual") || "Lista 1";
 
-        /* ---------- inicialización de listas ---------- */
         function cargarListas() {
             listaSelect.innerHTML = "";
             listas.forEach(nombre => {
@@ -233,7 +223,6 @@
             cargarDatos();
         }
 
-        /* ---------- crear nueva lista ---------- */
         function nuevaLista() {
             const nombre = prompt("Nombre de la nueva lista:");
             if (!nombre) return;
@@ -245,36 +234,47 @@
             cargarListas();
         }
 
-        /* ---------- cambiar lista ---------- */
         function cambiarLista() {
             listaActual = listaSelect.value;
             localStorage.setItem("listaActual", listaActual);
             cargarDatos();
         }
 
-        /* ---------- agregar fila ---------- */
+        // ✅ Solo cambia la parte de IMAGEN a usar URL
         function agregarFila(data = {}) {
             const tr = document.createElement("tr");
 
-            // Celda foto
+            // Foto con URL
             const tdFoto = document.createElement("td");
-            const inputFile = document.createElement("input");
-            inputFile.type = "file";
-            inputFile.accept = "image/*";
-            inputFile.onchange = function () { mostrarImagen(inputFile); };
-            if (data.imagen) inputFile.style.display = "none";
-            tdFoto.appendChild(inputFile);
-
+            const inUrl = document.createElement("input");
+            inUrl.type = "text";
+            inUrl.placeholder = "Pega el enlace de la imagen";
+            inUrl.value = data.imagen || "";
+            inUrl.oninput = function () {
+                let img = tdFoto.querySelector("img.preview");
+                if (!inUrl.value.trim()) {
+                    if (img) img.remove();
+                    return;
+                }
+                if (!img) {
+                    img = document.createElement("img");
+                    img.className = "preview";
+                    tdFoto.appendChild(img);
+                }
+                img.src = inUrl.value.trim();
+                activarCambioImagen(img, inUrl);
+            };
+            tdFoto.appendChild(inUrl);
             if (data.imagen) {
                 const img = document.createElement("img");
                 img.className = "preview";
                 img.src = data.imagen;
                 tdFoto.appendChild(img);
-                activarCambioImagen(img, inputFile);
+                activarCambioImagen(img, inUrl);
             }
             tr.appendChild(tdFoto);
 
-            // Álbum
+            // Resto igual que antes
             const tdAlbum = document.createElement("td");
             const inAlbum = document.createElement("input");
             inAlbum.type = "text";
@@ -283,7 +283,6 @@
             tdAlbum.appendChild(inAlbum);
             tr.appendChild(tdAlbum);
 
-            // Cantidad
             const tdCant = document.createElement("td");
             const inCant = document.createElement("input");
             inCant.type = "number"; inCant.min = 0; inCant.value = data.cantidad || 0;
@@ -291,7 +290,6 @@
             tdCant.appendChild(inCant);
             tr.appendChild(tdCant);
 
-            // Precio
             const tdPrecio = document.createElement("td");
             const inPrecio = document.createElement("input");
             inPrecio.type = "number"; inPrecio.min = 0; inPrecio.value = data.precio || 0;
@@ -299,13 +297,11 @@
             tdPrecio.appendChild(inPrecio);
             tr.appendChild(tdPrecio);
 
-            // Total
             const tdTotal = document.createElement("td");
             tdTotal.className = "total";
             tdTotal.textContent = "$0";
             tr.appendChild(tdTotal);
 
-            // Pago
             const tdPago = document.createElement("td");
             const inPago = document.createElement("input");
             inPago.type = "number"; inPago.min = 0; inPago.value = data.pago || 0;
@@ -313,7 +309,6 @@
             tdPago.appendChild(inPago);
             tr.appendChild(tdPago);
 
-            // Fecha
             const tdFecha = document.createElement("td");
             const inFecha = document.createElement("input");
             inFecha.type = "date"; inFecha.value = data.fecha || "";
@@ -321,25 +316,19 @@
             tdFecha.appendChild(inFecha);
             tr.appendChild(tdFecha);
 
-            // Deuda
             const tdDeuda = document.createElement("td");
             tdDeuda.className = "deuda";
             tdDeuda.textContent = "$0";
             tr.appendChild(tdDeuda);
 
-            // Estado
             const tdEstado = document.createElement("td");
             const sel = document.createElement("select");
             sel.className = "estado";
-            const op1 = document.createElement("option"); op1.textContent = "Pagado";
-            const op2 = document.createElement("option"); op2.textContent = "No Pagado";
-            if (data.estado === "Pagado") op1.selected = true;
-            if (data.estado === "No Pagado") op2.selected = true;
-            sel.appendChild(op1); sel.appendChild(op2);
+            sel.innerHTML = `<option ${data.estado === "Pagado" ? "selected" : ""}>Pagado</option>
+                             <option ${data.estado === "No Pagado" ? "selected" : ""}>No Pagado</option>`;
             tdEstado.appendChild(sel);
             tr.appendChild(tdEstado);
 
-            // Acciones
             const tdAcc = document.createElement("td");
             tdAcc.className = "acciones";
             const btnDel = document.createElement("button");
@@ -352,26 +341,6 @@
             actualizarTotales();
         }
 
-        /* ---------- mostrar imagen ---------- */
-        function mostrarImagen(input) {
-            const file = input.files && input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                let img = input.parentElement.querySelector("img.preview");
-                if (!img) {
-                    img = document.createElement("img");
-                    img.className = "preview";
-                    input.parentElement.appendChild(img);
-                }
-                img.src = e.target.result;
-                input.style.display = "none";
-                activarCambioImagen(img, input);
-            };
-            reader.readAsDataURL(file);
-        }
-
-        /* ---------- modal imagen grande ---------- */
         function activarCambioImagen(img, input) {
             img.onclick = function () {
                 const modal = document.createElement("div");
@@ -388,7 +357,7 @@
                 buttons.className = "modal-buttons";
 
                 const btnCambiar = document.createElement("button");
-                btnCambiar.textContent = "Cambiar imagen";
+                btnCambiar.textContent = "Cambiar enlace";
                 const btnCerrar = document.createElement("button");
                 btnCerrar.textContent = "Cerrar";
 
@@ -400,33 +369,22 @@
                 document.body.appendChild(modal);
 
                 btnCerrar.onclick = () => modal.remove();
-
                 btnCambiar.onclick = () => {
-                    const temp = document.createElement("input");
-                    temp.type = "file"; temp.accept = "image/*";
-                    temp.onchange = function () {
-                        const f = temp.files && temp.files[0];
-                        if (!f) return;
-                        const r = new FileReader();
-                        r.onload = function (ev) {
-                            img.src = ev.target.result;
-                            bigImg.src = ev.target.result;
-                            if (input) input.style.display = "none";
-                        };
-                        r.readAsDataURL(f);
-                    };
-                    temp.click();
+                    const nueva = prompt("Pega el nuevo enlace de imagen:");
+                    if (nueva) {
+                        img.src = nueva;
+                        input.value = nueva;
+                        bigImg.src = nueva;
+                    }
                 };
             };
         }
 
-        /* ---------- eliminar fila ---------- */
         function eliminarFila(boton) {
             boton.closest("tr").remove();
             actualizarTotales();
         }
 
-        /* ---------- actualizar totales ---------- */
         function actualizarTotales() {
             let totalGeneral = 0, totalPagos = 0, totalDeuda = 0;
             const filas = tablaBody.querySelectorAll("tr");
@@ -445,7 +403,6 @@
             resumen.innerHTML = `💰 Total General: $${totalGeneral.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp; 💵 Total Pagos: $${totalPagos.toFixed(2)} &nbsp;&nbsp;|&nbsp;&nbsp; ❗ Total Deuda: $${totalDeuda.toFixed(2)}`;
         }
 
-        /* ---------- guardar datos ---------- */
         function guardarDatos() {
             const filas = tablaBody.querySelectorAll("tr");
             const datos = [];
@@ -466,7 +423,6 @@
             alert("✅ Datos guardados en " + listaActual);
         }
 
-        /* ---------- cargar datos ---------- */
         function cargarDatos() {
             tablaBody.innerHTML = "";
             const datos = JSON.parse(localStorage.getItem("registroArticulos_" + listaActual) || "[]");
@@ -474,7 +430,6 @@
             actualizarTotales();
         }
 
-        /* ---------- borrar lista ---------- */
         function borrarDatos() {
             if (!confirm("¿Seguro que deseas borrar todos los registros de " + listaActual + "?")) return;
             localStorage.removeItem("registroArticulos_" + listaActual);
@@ -482,7 +437,6 @@
             actualizarTotales();
         }
 
-        /* ---------- inicial ---------- */
         cargarListas();
     </script>
 </body>

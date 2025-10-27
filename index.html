@@ -376,7 +376,7 @@
             sel.className = "estado";
             sel.innerHTML = `
             <option ${data.estado === "Pagado" ? "selected" : ""}>Pagado</option>
-            <option ${data.estado === "No Pagado" ? "selected" : ""}>No Pagado</option>`;
+            <option ${(data.estado === "No Pagado" || !data.estado) ? "selected" : ""}>No Pagado</option>`;
             tdEstado.appendChild(sel);
             tr.appendChild(tdEstado);
 

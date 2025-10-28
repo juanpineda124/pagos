@@ -197,6 +197,12 @@
             /* amarillo suave */
             transition: background-color 0.3s ease;
         }
+
+        tr.descuento {
+            background-color: #b3e5fc !important;
+            /* azul suave */
+            transition: background-color 0.3s ease;
+        }
     </style>
 </head>
 
@@ -397,6 +403,7 @@
             sel.innerHTML = `
             <option ${data.estado === "Pagado" ? "selected" : ""}>Pagado</option>
             <option ${data.estado === "Abono" ? "selected" : ""}>Abono</option>
+            <option ${data.estado === "Descuento" ? "selected" : ""}>Descuento</option>
             <option ${(data.estado === "No Pagado" || !data.estado) ? "selected" : ""}>No Pagado</option>`;
             tdEstado.appendChild(sel);
             tr.appendChild(tdEstado);
@@ -470,13 +477,15 @@
                 const estado = estadoSelect.value;
 
                 // Limpia cualquier color previo
-                fila.classList.remove("pagado", "abono");
+                fila.classList.remove("pagado", "abono", "descuento");
 
                 // Aplica el color según el estado
                 if (estado === "Pagado") {
                     fila.classList.add("pagado"); // verde
                 } else if (estado === "Abono") {
                     fila.classList.add("abono"); // amarillo
+                } else if (estado === "Descuento") {
+                    fila.classList.add("descuento"); // azul
                 }
 
                 // Detecta cambios manuales y actualiza color en tiempo real
@@ -486,6 +495,8 @@
                         fila.classList.add("pagado");
                     } else if (estadoSelect.value === "Abono") {
                         fila.classList.add("abono");
+                    } else if (estadoSelect.value === "Descuento") {
+                        fila.classList.add("descuento");
                     }
                     actualizarTotales();
                 };

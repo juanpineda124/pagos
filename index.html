@@ -191,6 +191,12 @@
             /* verde suave */
             transition: background-color 0.3s ease;
         }
+
+        tr.abono {
+            background-color: #fff176 !important;
+            /* amarillo suave */
+            transition: background-color 0.3s ease;
+        }
     </style>
 </head>
 
@@ -390,6 +396,7 @@
             sel.className = "estado";
             sel.innerHTML = `
             <option ${data.estado === "Pagado" ? "selected" : ""}>Pagado</option>
+            <option ${data.estado === "Abono" ? "selected" : ""}>Abono</option>
             <option ${(data.estado === "No Pagado" || !data.estado) ? "selected" : ""}>No Pagado</option>`;
             tdEstado.appendChild(sel);
             tr.appendChild(tdEstado);
@@ -462,24 +469,29 @@
                 const estadoSelect = fila.children[9].querySelector("select");
                 const estado = estadoSelect.value;
 
-                // Agrega o quita la clase según el estado
+                // Limpia cualquier color previo
+                fila.classList.remove("pagado", "abono");
+
+                // Aplica el color según el estado
                 if (estado === "Pagado") {
-                    fila.classList.add("pagado");
-                } else {
-                    fila.classList.remove("pagado");
+                    fila.classList.add("pagado"); // verde
+                } else if (estado === "Abono") {
+                    fila.classList.add("abono"); // amarillo
                 }
 
-                // Si el usuario cambia el estado manualmente, también se actualiza
+                // Detecta cambios manuales y actualiza color en tiempo real
                 estadoSelect.onchange = () => {
+                    fila.classList.remove("pagado", "abono");
                     if (estadoSelect.value === "Pagado") {
                         fila.classList.add("pagado");
-                    } else {
-                        fila.classList.remove("pagado");
+                    } else if (estadoSelect.value === "Abono") {
+                        fila.classList.add("abono");
                     }
-                    actualizarTotales(); // mantiene totales actualizados
+                    actualizarTotales();
                 };
             });
         }
+
 
         function actualizarTotales() {
             let totalGeneral = 0, totalPagos = 0, totalDeuda = 0;

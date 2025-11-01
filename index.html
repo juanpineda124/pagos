@@ -581,12 +581,13 @@
             const sel = document.createElement("select");
             sel.className = "estado";
             sel.innerHTML = `
-        <option ${data.estado === "Pagado" ? "selected" : ""}>Pagado</option>
-        <option ${data.estado === "Abono" ? "selected" : ""}>Abono</option>
-        <option ${data.estado === "Descuento" ? "selected" : ""}>Descuento</option>
-        <option ${(data.estado === "No Pagado" || !data.estado) ? "selected" : ""}>No Pagado</option>`;
+                <option value="Pagado" ${data.estado === "Pagado" ? "selected" : ""}>Pagado</option>
+                <option value="Abono" ${data.estado === "Abono" ? "selected" : ""}>Abono</option>
+                <option value="Descuento" ${data.estado === "Descuento" ? "selected" : ""}>Descuento</option>
+                <option value="No Pagado" ${(data.estado === "No Pagado" || !data.estado) ? "selected" : ""}>No Pagado</option>`;
             tdEstado.appendChild(sel);
             tr.appendChild(tdEstado);
+            sel.onchange = actualizarColorFilas;
 
             // eliminar
             const tdAcc = document.createElement("td");

@@ -563,9 +563,43 @@
         }
 
         function imprimirLista() {
-            const tabla = document.getElementById("tabla").outerHTML;
+            // ✅ Obtener copia de la tabla
+            const tablaOriginal = document.getElementById("tabla");
+            const tablaClonada = tablaOriginal.cloneNode(true);
+
+            // ✅ Convertir inputs y selects a texto visible
+            tablaClonada.querySelectorAll("tr").forEach(fila => {
+                fila.querySelectorAll("td").forEach((celda, index) => {
+
+                    const input = celda.querySelector("input");
+                    const select = celda.querySelector("select");
+                    const img = celda.querySelector("img");
+
+                    // 📌 Si es una imagen, se mantiene tal cual
+                    if (img) return;
+
+                    // 📌 Si es un input → reemplazar por su valor
+                    if (input) {
+                        const texto = document.createElement("span");
+                        texto.textContent = input.value || "";
+                        celda.innerHTML = "";
+                        celda.appendChild(texto);
+                    }
+
+                    // 📌 Si es un select → mostrar su opción seleccionada
+                    if (select) {
+                        const texto = document.createElement("span");
+                        texto.textContent = select.value;
+                        celda.innerHTML = "";
+                        celda.appendChild(texto);
+                    }
+                });
+            });
+
+            // ✅ Copiar el resumen
             const resumenHTML = document.getElementById("resumen").outerHTML;
 
+            // ✅ Crear ventana de impresión
             const ventana = window.open("", "_blank");
 
             ventana.document.write(`
@@ -578,7 +612,7 @@
                     margin: 30px;
                 }
 
-                /* ✅ Forzar que los colores se impriman tal cual */
+                /* ✅ Forzar colores exactos en impresión */
                 * {
                     -webkit-print-color-adjust: exact !important;
                     print-color-adjust: exact !important;
@@ -605,20 +639,16 @@
                     object-fit: cover;
                 }
 
-                /* ✅ Colores sólidos y fuertes para impresión */
+                /* ✅ Colores fuertes para impresión */
                 tr.pagado { background-color: #2e7d32 !important; color: white !important; }
                 tr.abono { background-color: #fdd835 !important; }
                 tr.descuento { background-color: #4fc3f7 !important; }
 
-                /* ✅ Ocultar botones, inputs y selects */
-                input, button, select {
-                    display: none !important;
-                }
             </style>
         </head>
         <body>
             <h2>📋 Lista: ${listaActual}</h2>
-            ${tabla}
+            ${tablaClonada.outerHTML}
             ${resumenHTML}
         </body>
         </html>
@@ -627,6 +657,7 @@
             ventana.document.close();
             ventana.print();
         }
+
 
         cargarListas();
     </script>

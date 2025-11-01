@@ -203,6 +203,85 @@
             /* azul suave */
             transition: background-color 0.3s ease;
         }
+
+        /* ---------------------------------------------------------------------- */
+        /* ✅ MODO CELULAR AUTOMÁTICO (solo si pantalla es menor a 768px)          */
+        /* ---------------------------------------------------------------------- */
+        @media (max-width: 768px) {
+
+            body {
+                margin: 10px !important;
+                padding: 5px !important;
+                font-size: 14px !important;
+            }
+
+            h1 {
+                font-size: 1.3em !important;
+                margin-bottom: 10px !important;
+            }
+
+            /* ✅ Hace la tabla deslizable horizontalmente */
+            table {
+                display: block !important;
+                overflow-x: auto !important;
+                white-space: nowrap !important;
+            }
+
+            th,
+            td {
+                padding: 6px !important;
+                font-size: 13px !important;
+            }
+
+            /* ✅ Inputs más cómodos para tocar */
+            input[type="text"],
+            input[type="number"],
+            input[type="date"],
+            select.estado {
+                padding: 10px !important;
+                font-size: 15px !important;
+            }
+
+            /* ✅ Botones más fáciles de tocar */
+            button {
+                padding: 10px 16px !important;
+                font-size: 15px !important;
+                margin: 4px !important;
+            }
+
+            /* ✅ Imágenes más grandes */
+            img.preview {
+                width: 55px !important;
+                height: 55px !important;
+            }
+
+            /* ✅ Ajustar columnas rígidas para móvil */
+            th:first-child,
+            td:first-child {
+                min-width: 40px !important;
+                width: 40px !important;
+            }
+
+            th:nth-child(2),
+            td:nth-child(2) {
+                min-width: 120px !important;
+            }
+
+            th:nth-child(3),
+            td:nth-child(3) {
+                min-width: 220px !important;
+            }
+
+            th:nth-child(8),
+            td:nth-child(8) {
+                min-width: 130px !important;
+            }
+
+            th:nth-child(11),
+            td:nth-child(11) {
+                min-width: 70px !important;
+            }
+        }
     </style>
 </head>
 

@@ -239,6 +239,7 @@
         <button onclick="agregarFila()">➕ Agregar fila</button>
         <button onclick="guardarDatos()">💾 Guardar</button>
         <button onclick="borrarDatos()">🧹 Borrar registros</button>
+        <button onclick="imprimirLista()">🖨️ Imprimir Lista</button>
     </div>
 
     <div id="resumen">
@@ -559,6 +560,72 @@
             localStorage.removeItem("registroArticulos_" + listaActual);
             tablaBody.innerHTML = "";
             actualizarTotales();
+        }
+
+        function imprimirLista() {
+            const tabla = document.getElementById("tabla").outerHTML;
+            const resumenHTML = document.getElementById("resumen").outerHTML;
+
+            const ventana = window.open("", "_blank");
+
+            ventana.document.write(`
+        <html>
+        <head>
+            <title>Imprimir - ${listaActual}</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 30px;
+                }
+
+                /* ✅ Forzar que los colores se impriman tal cual */
+                * {
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                }
+                th, td {
+                    border: 1px solid #333;
+                    padding: 8px;
+                    text-align: center;
+                }
+                th {
+                    background: #007bff !important;
+                    color: white !important;
+                }
+
+                img {
+                    width: 60px;
+                    height: 60px;
+                    object-fit: cover;
+                }
+
+                /* ✅ Colores sólidos y fuertes para impresión */
+                tr.pagado { background-color: #2e7d32 !important; color: white !important; }
+                tr.abono { background-color: #fdd835 !important; }
+                tr.descuento { background-color: #4fc3f7 !important; }
+
+                /* ✅ Ocultar botones, inputs y selects */
+                input, button, select {
+                    display: none !important;
+                }
+            </style>
+        </head>
+        <body>
+            <h2>📋 Lista: ${listaActual}</h2>
+            ${tabla}
+            ${resumenHTML}
+        </body>
+        </html>
+    `);
+
+            ventana.document.close();
+            ventana.print();
         }
 
         cargarListas();

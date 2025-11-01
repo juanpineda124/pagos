@@ -215,6 +215,7 @@
         <button onclick="nuevaLista()">➕ Nueva Lista</button>
         <button onclick="eliminarLista()">🗑️ Eliminar Lista</button>
         <button onclick="renombrarLista()">✏️ Renombrar lista</button>
+        <button onclick="activarModoMovil()">📱 Modo Celular</button>
     </div>
 
     <table id="tabla">
@@ -253,443 +254,443 @@
     </div>
 
     <script>
-/* -------------------------------------------------------------------------- */
-/* -------------------- VARIABLES GLOBALES Y CONFIG -------------------------- */
-/* -------------------------------------------------------------------------- */
+        /* -------------------------------------------------------------------------- */
+        /* -------------------- VARIABLES GLOBALES Y CONFIG -------------------------- */
+        /* -------------------------------------------------------------------------- */
 
-const tablaBody = document.getElementById("tablaBody");
-const resumen = document.getElementById("resumen");
-const listaSelect = document.getElementById("listaSelect");
-const URL_DRIVE_API = "https://script.google.com/macros/s/AKfycbztU3w7DqFQN1-eWv4CDnJ3HsBWQrxyD6EGK8mHJE-yMUK6iQlmYV1RNyfMtSIjzhvA/exec";
+        const tablaBody = document.getElementById("tablaBody");
+        const resumen = document.getElementById("resumen");
+        const listaSelect = document.getElementById("listaSelect");
+        const URL_DRIVE_API = "https://script.google.com/macros/s/AKfycbztU3w7DqFQN1-eWv4CDnJ3HsBWQrxyD6EGK8mHJE-yMUK6iQlmYV1RNyfMtSIjzhvA/exec";
 
-let listas = JSON.parse(localStorage.getItem("listasNombres")) || ["Lista 1"];
-let listaActual = localStorage.getItem("listaActual") || "Lista 1";
+        let listas = JSON.parse(localStorage.getItem("listasNombres")) || ["Lista 1"];
+        let listaActual = localStorage.getItem("listaActual") || "Lista 1";
 
-/* -------------------------------------------------------------------------- */
-/* --------------------------- INICIALIZAR INDEXEDDB ------------------------- */
-/* -------------------------------------------------------------------------- */
+        /* -------------------------------------------------------------------------- */
+        /* --------------------------- INICIALIZAR INDEXEDDB ------------------------- */
+        /* -------------------------------------------------------------------------- */
 
-let db;
+        let db;
 
-function iniciarDB() {
-    const request = indexedDB.open("AlbumDB", 1);
+        function iniciarDB() {
+            const request = indexedDB.open("AlbumDB", 1);
 
-    request.onupgradeneeded = function (event) {
-        db = event.target.result;
-        if (!db.objectStoreNames.contains("listas")) {
-            let store = db.createObjectStore("listas", { keyPath: "nombre" });
-            store.createIndex("nombre", "nombre", { unique: true });
-        }
-    };
+            request.onupgradeneeded = function (event) {
+                db = event.target.result;
+                if (!db.objectStoreNames.contains("listas")) {
+                    let store = db.createObjectStore("listas", { keyPath: "nombre" });
+                    store.createIndex("nombre", "nombre", { unique: true });
+                }
+            };
 
-    request.onsuccess = function (event) {
-        db = event.target.result;
-        console.log("✅ IndexedDB cargada");
-        cargarListas();
-    };
+            request.onsuccess = function (event) {
+                db = event.target.result;
+                console.log("✅ IndexedDB cargada");
+                cargarListas();
+            };
 
-    request.onerror = function () {
-        console.error("❌ Error inicializando IndexedDB");
-    };
-}
-
-iniciarDB();
-
-/* -------------------------------------------------------------------------- */
-/* -------------------------- GESTIÓN DE LISTAS ----------------------------- */
-/* -------------------------------------------------------------------------- */
-
-function cargarListas() {
-    listaSelect.innerHTML = "";
-    listas.forEach(nombre => {
-        const opt = document.createElement("option");
-        opt.value = nombre;
-        opt.textContent = nombre;
-        if (nombre === listaActual) opt.selected = true;
-        listaSelect.appendChild(opt);
-    });
-
-    cargarDatos();
-}
-
-function nuevaLista() {
-    const nombre = prompt("Nombre de la nueva lista:");
-    if (!nombre) return;
-    if (listas.includes(nombre)) return alert("❗ Esa lista ya existe.");
-
-    listas.push(nombre);
-    localStorage.setItem("listasNombres", JSON.stringify(listas));
-    listaActual = nombre;
-    localStorage.setItem("listaActual", listaActual);
-
-    cargarListas();
-}
-
-function eliminarLista() {
-    if (!listaActual) return alert("❗ No hay lista seleccionada");
-
-    if (!confirm("¿Eliminar lista '" + listaActual + "'?")) return;
-
-    const tx = db.transaction(["listas"], "readwrite");
-    const store = tx.objectStore("listas");
-    store.delete(listaActual);
-
-    listas = listas.filter(l => l !== listaActual);
-    localStorage.setItem("listasNombres", JSON.stringify(listas));
-    listaActual = listas[0] || "Lista 1";
-    localStorage.setItem("listaActual", listaActual);
-
-    cargarListas();
-    alert("✅ Lista eliminada");
-}
-
-function renombrarLista() {
-    const nuevoNombre = prompt("Editar nombre:", listaActual);
-    if (!nuevoNombre) return;
-    if (listas.includes(nuevoNombre) && nuevoNombre !== listaActual)
-        return alert("❗ Ese nombre ya existe.");
-
-    const tx = db.transaction(["listas"], "readwrite");
-    const store = tx.objectStore("listas");
-
-    store.get(listaActual).onsuccess = function (event) {
-        const data = event.target.result;
-
-        // borrar viejo
-        store.delete(listaActual);
-
-        // guardar nuevo
-        store.put({
-            nombre: nuevoNombre,
-            datos: data ? data.datos : []
-        });
-
-        // actualizar listas del UI
-        listas[listas.indexOf(listaActual)] = nuevoNombre;
-        listaActual = nuevoNombre;
-
-        localStorage.setItem("listaActual", listaActual);
-        localStorage.setItem("listasNombres", JSON.stringify(listas));
-
-        cargarListas();
-        alert("✅ Lista renombrada correctamente.");
-    };
-}
-
-function cambiarLista() {
-    listaActual = listaSelect.value;
-    localStorage.setItem("listaActual", listaActual);
-    cargarDatos();
-}
-
-/* -------------------------------------------------------------------------- */
-/* ---------------------- FUNCIONES DE TABLA E IMÁGENES ---------------------- */
-/* -------------------------------------------------------------------------- */
-
-function convertirDriveURL(url) {
-    if (!url) return "";
-    const match = url.match(/(?:file\/d\/|id=)([a-zA-Z0-9_-]{10,})/);
-    if (match && match[1]) return `https://lh3.googleusercontent.com/d/${match[1]}=s800`;
-    return url;
-}
-
-function agregarFila(data = {}) {
-    const tr = document.createElement("tr");
-
-    // # registro
-    const tdNum = document.createElement("td");
-    tdNum.className = "numeroRegistro";
-    tdNum.textContent = tablaBody.rows.length + 1;
-    tr.appendChild(tdNum);
-
-    // foto
-    const tdFoto = document.createElement("td");
-    const inUrl = document.createElement("input");
-    inUrl.type = "text";
-    inUrl.placeholder = "Pega el enlace";
-    inUrl.value = data.imagen || "";
-    tdFoto.appendChild(inUrl);
-
-    function mostrarImagen(url) {
-        url = convertirDriveURL(url.trim());
-        if (!url) return;
-
-        let img = tdFoto.querySelector("img.preview");
-        if (!img) {
-            img = document.createElement("img");
-            img.className = "preview";
-            tdFoto.appendChild(img);
+            request.onerror = function () {
+                console.error("❌ Error inicializando IndexedDB");
+            };
         }
 
-        img.src = url;
-        inUrl.value = url;
-        inUrl.style.display = "none";
-        activarCambioImagen(img, inUrl);
-    }
+        iniciarDB();
 
-    if (data.imagen) {
-        mostrarImagen(data.imagen);
-        if (!tdFoto.querySelector("img.preview")) {
-            let img = document.createElement("img");
-            img.className = "preview";
-            img.src = convertirDriveURL(inUrl.value.trim());
-            tdFoto.appendChild(img);
-            inUrl.style.display = "none";
+        /* -------------------------------------------------------------------------- */
+        /* -------------------------- GESTIÓN DE LISTAS ----------------------------- */
+        /* -------------------------------------------------------------------------- */
+
+        function cargarListas() {
+            listaSelect.innerHTML = "";
+            listas.forEach(nombre => {
+                const opt = document.createElement("option");
+                opt.value = nombre;
+                opt.textContent = nombre;
+                if (nombre === listaActual) opt.selected = true;
+                listaSelect.appendChild(opt);
+            });
+
+            cargarDatos();
         }
-    }
 
-    inUrl.onchange = () => mostrarImagen(inUrl.value);
-    tr.appendChild(tdFoto);
+        function nuevaLista() {
+            const nombre = prompt("Nombre de la nueva lista:");
+            if (!nombre) return;
+            if (listas.includes(nombre)) return alert("❗ Esa lista ya existe.");
 
-    // album
-    const tdAlbum = document.createElement("td");
-    const inAlbum = document.createElement("input");
-    inAlbum.value = data.articulo || "";
-    inAlbum.onchange = actualizarTotales;
-    tdAlbum.appendChild(inAlbum);
-    tr.appendChild(tdAlbum);
+            listas.push(nombre);
+            localStorage.setItem("listasNombres", JSON.stringify(listas));
+            listaActual = nombre;
+            localStorage.setItem("listaActual", listaActual);
 
-    // cantidad
-    const tdCant = document.createElement("td");
-    const inCant = document.createElement("input");
-    inCant.type = "number";
-    inCant.value = data.cantidad || 0;
-    inCant.onchange = actualizarTotales;
-    tdCant.appendChild(inCant);
-    tr.appendChild(tdCant);
+            cargarListas();
+        }
 
-    // precio
-    const tdPrecio = document.createElement("td");
-    const inPrecio = document.createElement("input");
-    inPrecio.type = "number";
-    inPrecio.value = data.precio || 0;
-    inPrecio.onchange = actualizarTotales;
-    tdPrecio.appendChild(inPrecio);
-    tr.appendChild(tdPrecio);
+        function eliminarLista() {
+            if (!listaActual) return alert("❗ No hay lista seleccionada");
 
-    // total
-    const tdTotal = document.createElement("td");
-    tdTotal.className = "total";
-    tdTotal.textContent = "$0";
-    tr.appendChild(tdTotal);
+            if (!confirm("¿Eliminar lista '" + listaActual + "'?")) return;
 
-    // pago
-    const tdPago = document.createElement("td");
-    const inPago = document.createElement("input");
-    inPago.type = "number";
-    inPago.value = data.pago || 0;
-    inPago.onchange = actualizarTotales;
-    tdPago.appendChild(inPago);
-    tr.appendChild(tdPago);
+            const tx = db.transaction(["listas"], "readwrite");
+            const store = tx.objectStore("listas");
+            store.delete(listaActual);
 
-    // fecha
-    const tdFecha = document.createElement("td");
-    const inFecha = document.createElement("input");
-    inFecha.type = "date";
-    inFecha.value = data.fecha || "";
-    tdFecha.appendChild(inFecha);
-    tr.appendChild(tdFecha);
+            listas = listas.filter(l => l !== listaActual);
+            localStorage.setItem("listasNombres", JSON.stringify(listas));
+            listaActual = listas[0] || "Lista 1";
+            localStorage.setItem("listaActual", listaActual);
 
-    // deuda
-    const tdDeuda = document.createElement("td");
-    tdDeuda.className = "deuda";
-    tdDeuda.textContent = "$0";
-    tr.appendChild(tdDeuda);
+            cargarListas();
+            alert("✅ Lista eliminada");
+        }
 
-    // estado
-    const tdEstado = document.createElement("td");
-    const sel = document.createElement("select");
-    sel.className = "estado";
-    sel.innerHTML = `
+        function renombrarLista() {
+            const nuevoNombre = prompt("Editar nombre:", listaActual);
+            if (!nuevoNombre) return;
+            if (listas.includes(nuevoNombre) && nuevoNombre !== listaActual)
+                return alert("❗ Ese nombre ya existe.");
+
+            const tx = db.transaction(["listas"], "readwrite");
+            const store = tx.objectStore("listas");
+
+            store.get(listaActual).onsuccess = function (event) {
+                const data = event.target.result;
+
+                // borrar viejo
+                store.delete(listaActual);
+
+                // guardar nuevo
+                store.put({
+                    nombre: nuevoNombre,
+                    datos: data ? data.datos : []
+                });
+
+                // actualizar listas del UI
+                listas[listas.indexOf(listaActual)] = nuevoNombre;
+                listaActual = nuevoNombre;
+
+                localStorage.setItem("listaActual", listaActual);
+                localStorage.setItem("listasNombres", JSON.stringify(listas));
+
+                cargarListas();
+                alert("✅ Lista renombrada correctamente.");
+            };
+        }
+
+        function cambiarLista() {
+            listaActual = listaSelect.value;
+            localStorage.setItem("listaActual", listaActual);
+            cargarDatos();
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* ---------------------- FUNCIONES DE TABLA E IMÁGENES ---------------------- */
+        /* -------------------------------------------------------------------------- */
+
+        function convertirDriveURL(url) {
+            if (!url) return "";
+            const match = url.match(/(?:file\/d\/|id=)([a-zA-Z0-9_-]{10,})/);
+            if (match && match[1]) return `https://lh3.googleusercontent.com/d/${match[1]}=s800`;
+            return url;
+        }
+
+        function agregarFila(data = {}) {
+            const tr = document.createElement("tr");
+
+            // # registro
+            const tdNum = document.createElement("td");
+            tdNum.className = "numeroRegistro";
+            tdNum.textContent = tablaBody.rows.length + 1;
+            tr.appendChild(tdNum);
+
+            // foto
+            const tdFoto = document.createElement("td");
+            const inUrl = document.createElement("input");
+            inUrl.type = "text";
+            inUrl.placeholder = "Pega el enlace";
+            inUrl.value = data.imagen || "";
+            tdFoto.appendChild(inUrl);
+
+            function mostrarImagen(url) {
+                url = convertirDriveURL(url.trim());
+                if (!url) return;
+
+                let img = tdFoto.querySelector("img.preview");
+                if (!img) {
+                    img = document.createElement("img");
+                    img.className = "preview";
+                    tdFoto.appendChild(img);
+                }
+
+                img.src = url;
+                inUrl.value = url;
+                inUrl.style.display = "none";
+                activarCambioImagen(img, inUrl);
+            }
+
+            if (data.imagen) {
+                mostrarImagen(data.imagen);
+                if (!tdFoto.querySelector("img.preview")) {
+                    let img = document.createElement("img");
+                    img.className = "preview";
+                    img.src = convertirDriveURL(inUrl.value.trim());
+                    tdFoto.appendChild(img);
+                    inUrl.style.display = "none";
+                }
+            }
+
+            inUrl.onchange = () => mostrarImagen(inUrl.value);
+            tr.appendChild(tdFoto);
+
+            // album
+            const tdAlbum = document.createElement("td");
+            const inAlbum = document.createElement("input");
+            inAlbum.value = data.articulo || "";
+            inAlbum.onchange = actualizarTotales;
+            tdAlbum.appendChild(inAlbum);
+            tr.appendChild(tdAlbum);
+
+            // cantidad
+            const tdCant = document.createElement("td");
+            const inCant = document.createElement("input");
+            inCant.type = "number";
+            inCant.value = data.cantidad || 0;
+            inCant.onchange = actualizarTotales;
+            tdCant.appendChild(inCant);
+            tr.appendChild(tdCant);
+
+            // precio
+            const tdPrecio = document.createElement("td");
+            const inPrecio = document.createElement("input");
+            inPrecio.type = "number";
+            inPrecio.value = data.precio || 0;
+            inPrecio.onchange = actualizarTotales;
+            tdPrecio.appendChild(inPrecio);
+            tr.appendChild(tdPrecio);
+
+            // total
+            const tdTotal = document.createElement("td");
+            tdTotal.className = "total";
+            tdTotal.textContent = "$0";
+            tr.appendChild(tdTotal);
+
+            // pago
+            const tdPago = document.createElement("td");
+            const inPago = document.createElement("input");
+            inPago.type = "number";
+            inPago.value = data.pago || 0;
+            inPago.onchange = actualizarTotales;
+            tdPago.appendChild(inPago);
+            tr.appendChild(tdPago);
+
+            // fecha
+            const tdFecha = document.createElement("td");
+            const inFecha = document.createElement("input");
+            inFecha.type = "date";
+            inFecha.value = data.fecha || "";
+            tdFecha.appendChild(inFecha);
+            tr.appendChild(tdFecha);
+
+            // deuda
+            const tdDeuda = document.createElement("td");
+            tdDeuda.className = "deuda";
+            tdDeuda.textContent = "$0";
+            tr.appendChild(tdDeuda);
+
+            // estado
+            const tdEstado = document.createElement("td");
+            const sel = document.createElement("select");
+            sel.className = "estado";
+            sel.innerHTML = `
         <option ${data.estado === "Pagado" ? "selected" : ""}>Pagado</option>
         <option ${data.estado === "Abono" ? "selected" : ""}>Abono</option>
         <option ${data.estado === "Descuento" ? "selected" : ""}>Descuento</option>
         <option ${(data.estado === "No Pagado" || !data.estado) ? "selected" : ""}>No Pagado</option>`;
-    tdEstado.appendChild(sel);
-    tr.appendChild(tdEstado);
+            tdEstado.appendChild(sel);
+            tr.appendChild(tdEstado);
 
-    // eliminar
-    const tdAcc = document.createElement("td");
-    const btnDel = document.createElement("button");
-    btnDel.textContent = "❌";
-    btnDel.onclick = () => eliminarFila(btnDel);
-    tdAcc.appendChild(btnDel);
-    tr.appendChild(tdAcc);
+            // eliminar
+            const tdAcc = document.createElement("td");
+            const btnDel = document.createElement("button");
+            btnDel.textContent = "❌";
+            btnDel.onclick = () => eliminarFila(btnDel);
+            tdAcc.appendChild(btnDel);
+            tr.appendChild(tdAcc);
 
-    tablaBody.appendChild(tr);
-    actualizarTotales();
-}
+            tablaBody.appendChild(tr);
+            actualizarTotales();
+        }
 
-function actualizarNumerosRegistro() {
-    tablaBody.querySelectorAll("tr").forEach((fila, i) => {
-        fila.querySelector(".numeroRegistro").textContent = i + 1;
-    });
-}
+        function actualizarNumerosRegistro() {
+            tablaBody.querySelectorAll("tr").forEach((fila, i) => {
+                fila.querySelector(".numeroRegistro").textContent = i + 1;
+            });
+        }
 
-function eliminarFila(btn) {
-    btn.closest("tr").remove();
-    actualizarNumerosRegistro();
-    actualizarTotales();
-}
+        function eliminarFila(btn) {
+            btn.closest("tr").remove();
+            actualizarNumerosRegistro();
+            actualizarTotales();
+        }
 
-function activarCambioImagen(img, input) {
-    img.onclick = function () {
-        const modal = document.createElement("div");
-        modal.className = "modal";
+        function activarCambioImagen(img, input) {
+            img.onclick = function () {
+                const modal = document.createElement("div");
+                modal.className = "modal";
 
-        const cont = document.createElement("div");
-        cont.className = "modal-content";
+                const cont = document.createElement("div");
+                cont.className = "modal-content";
 
-        const big = document.createElement("img");
-        big.className = "modal-img";
-        big.src = img.src;
+                const big = document.createElement("img");
+                big.className = "modal-img";
+                big.src = img.src;
 
-        const btns = document.createElement("div");
-        btns.className = "modal-buttons";
+                const btns = document.createElement("div");
+                btns.className = "modal-buttons";
 
-        const c1 = document.createElement("button");
-        c1.textContent = "Cambiar enlace";
+                const c1 = document.createElement("button");
+                c1.textContent = "Cambiar enlace";
 
-        const c2 = document.createElement("button");
-        c2.textContent = "Cerrar";
+                const c2 = document.createElement("button");
+                c2.textContent = "Cerrar";
 
-        btns.appendChild(c1);
-        btns.appendChild(c2);
-        cont.appendChild(big);
-        cont.appendChild(btns);
-        modal.appendChild(cont);
-        document.body.appendChild(modal);
+                btns.appendChild(c1);
+                btns.appendChild(c2);
+                cont.appendChild(big);
+                cont.appendChild(btns);
+                modal.appendChild(cont);
+                document.body.appendChild(modal);
 
-        c2.onclick = () => modal.remove();
-        c1.onclick = () => {
-            const nueva = prompt("Pega el nuevo enlace:");
-            if (nueva) {
-                const conv = convertirDriveURL(nueva);
-                img.src = conv;
-                input.value = conv;
-                big.src = conv;
-            }
-        };
-    };
-}
+                c2.onclick = () => modal.remove();
+                c1.onclick = () => {
+                    const nueva = prompt("Pega el nuevo enlace:");
+                    if (nueva) {
+                        const conv = convertirDriveURL(nueva);
+                        img.src = conv;
+                        input.value = conv;
+                        big.src = conv;
+                    }
+                };
+            };
+        }
 
-function actualizarColorFilas() {
-    tablaBody.querySelectorAll("tr").forEach(fila => {
-        const estado = fila.children[9].querySelector("select").value;
-        fila.classList.remove("pagado", "abono", "descuento");
+        function actualizarColorFilas() {
+            tablaBody.querySelectorAll("tr").forEach(fila => {
+                const estado = fila.children[9].querySelector("select").value;
+                fila.classList.remove("pagado", "abono", "descuento");
 
-        if (estado === "Pagado") fila.classList.add("pagado");
-        else if (estado === "Abono") fila.classList.add("abono");
-        else if (estado === "Descuento") fila.classList.add("descuento");
-    });
-}
+                if (estado === "Pagado") fila.classList.add("pagado");
+                else if (estado === "Abono") fila.classList.add("abono");
+                else if (estado === "Descuento") fila.classList.add("descuento");
+            });
+        }
 
-function actualizarTotales() {
-    let total = 0, pagos = 0, deuda = 0;
+        function actualizarTotales() {
+            let total = 0, pagos = 0, deuda = 0;
 
-    tablaBody.querySelectorAll("tr").forEach(fila => {
-        const c = Number(fila.children[3].querySelector("input").value) || 0;
-        const p = Number(fila.children[4].querySelector("input").value) || 0;
-        const pg = Number(fila.children[6].querySelector("input").value) || 0;
+            tablaBody.querySelectorAll("tr").forEach(fila => {
+                const c = Number(fila.children[3].querySelector("input").value) || 0;
+                const p = Number(fila.children[4].querySelector("input").value) || 0;
+                const pg = Number(fila.children[6].querySelector("input").value) || 0;
 
-        const t = c * p;
-        const d = t - pg;
+                const t = c * p;
+                const d = t - pg;
 
-        fila.children[5].textContent = "$" + t.toFixed(2);
-        fila.children[8].textContent = "$" + d.toFixed(2);
+                fila.children[5].textContent = "$" + t.toFixed(2);
+                fila.children[8].textContent = "$" + d.toFixed(2);
 
-        total += t;
-        pagos += pg;
-        deuda += d;
-    });
+                total += t;
+                pagos += pg;
+                deuda += d;
+            });
 
-    resumen.innerHTML = `💰 Total General: $${total.toFixed(2)} 
+            resumen.innerHTML = `💰 Total General: $${total.toFixed(2)} 
       | 💵 Total Pagos: $${pagos.toFixed(2)} 
       | ❗ Total Deuda: $${deuda.toFixed(2)}`;
 
-    actualizarColorFilas();
-}
-
-/* -------------------------------------------------------------------------- */
-/* -------------------------  GUARDAR EN INDEXEDDB  -------------------------- */
-/* -------------------------------------------------------------------------- */
-
-function guardarDatos() {
-    const filas = tablaBody.querySelectorAll("tr");
-    const datos = [];
-
-    filas.forEach(fila => {
-        datos.push({
-            idRegistro: Number(fila.children[0].textContent),
-            imagen: fila.children[1].querySelector("input").value || "",
-            articulo: fila.children[2].querySelector("input").value,
-            cantidad: fila.children[3].querySelector("input").value,
-            precio: fila.children[4].querySelector("input").value,
-            pago: fila.children[6].querySelector("input").value,
-            fecha: fila.children[7].querySelector("input").value,
-            estado: fila.children[9].querySelector("select").value
-        });
-    });
-
-    const tx = db.transaction(["listas"], "readwrite");
-    const store = tx.objectStore("listas");
-
-    store.put({ nombre: listaActual, datos });
-
-    tx.oncomplete = () => alert("✅ Lista guardada sin límite (IndexedDB)");
-    tx.onerror = () => alert("❗ Error guardando en IndexedDB");
-}
-
-/* -------------------------------------------------------------------------- */
-/* -------------------------  CARGAR DESDE INDEXEDDB ------------------------- */
-/* -------------------------------------------------------------------------- */
-
-function cargarDatos() {
-    if (!db) return;
-
-    tablaBody.innerHTML = "";
-
-    const tx = db.transaction(["listas"], "readonly");
-    const store = tx.objectStore("listas");
-
-    const req = store.get(listaActual);
-
-    req.onsuccess = function (event) {
-        const data = event.target.result;
-
-        if (!data || !data.datos) {
-            actualizarTotales();
-            return;
+            actualizarColorFilas();
         }
 
-        data.datos.forEach(f => agregarFila(f));
+        /* -------------------------------------------------------------------------- */
+        /* -------------------------  GUARDAR EN INDEXEDDB  -------------------------- */
+        /* -------------------------------------------------------------------------- */
 
-        actualizarNumerosRegistro();
-        actualizarTotales();
-    };
-}
+        function guardarDatos() {
+            const filas = tablaBody.querySelectorAll("tr");
+            const datos = [];
 
-/* -------------------------------------------------------------------------- */
-/* ----------------------------- BORRAR LISTA -------------------------------- */
-/* -------------------------------------------------------------------------- */
+            filas.forEach(fila => {
+                datos.push({
+                    idRegistro: Number(fila.children[0].textContent),
+                    imagen: fila.children[1].querySelector("input").value || "",
+                    articulo: fila.children[2].querySelector("input").value,
+                    cantidad: fila.children[3].querySelector("input").value,
+                    precio: fila.children[4].querySelector("input").value,
+                    pago: fila.children[6].querySelector("input").value,
+                    fecha: fila.children[7].querySelector("input").value,
+                    estado: fila.children[9].querySelector("select").value
+                });
+            });
 
-function borrarDatos() {
-    if (!confirm("¿Borrar todos los registros de esta lista?")) return;
+            const tx = db.transaction(["listas"], "readwrite");
+            const store = tx.objectStore("listas");
 
-    const tx = db.transaction(["listas"], "readwrite");
-    const store = tx.objectStore("listas");
-    store.delete(listaActual);
+            store.put({ nombre: listaActual, datos });
 
-    tx.oncomplete = () => {
-        tablaBody.innerHTML = "";
-        actualizarTotales();
-        alert("✅ Lista borrada");
-    };
-}
+            tx.oncomplete = () => alert("✅ Lista guardada sin límite (IndexedDB)");
+            tx.onerror = () => alert("❗ Error guardando en IndexedDB");
+        }
 
-/* -------------------------------------------------------------------------- */
-/* --------------------------- DRIVE (sin cambios) --------------------------- */
-/* -------------------------------------------------------------------------- */
+        /* -------------------------------------------------------------------------- */
+        /* -------------------------  CARGAR DESDE INDEXEDDB ------------------------- */
+        /* -------------------------------------------------------------------------- */
+
+        function cargarDatos() {
+            if (!db) return;
+
+            tablaBody.innerHTML = "";
+
+            const tx = db.transaction(["listas"], "readonly");
+            const store = tx.objectStore("listas");
+
+            const req = store.get(listaActual);
+
+            req.onsuccess = function (event) {
+                const data = event.target.result;
+
+                if (!data || !data.datos) {
+                    actualizarTotales();
+                    return;
+                }
+
+                data.datos.forEach(f => agregarFila(f));
+
+                actualizarNumerosRegistro();
+                actualizarTotales();
+            };
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* ----------------------------- BORRAR LISTA -------------------------------- */
+        /* -------------------------------------------------------------------------- */
+
+        function borrarDatos() {
+            if (!confirm("¿Borrar todos los registros de esta lista?")) return;
+
+            const tx = db.transaction(["listas"], "readwrite");
+            const store = tx.objectStore("listas");
+            store.delete(listaActual);
+
+            tx.oncomplete = () => {
+                tablaBody.innerHTML = "";
+                actualizarTotales();
+                alert("✅ Lista borrada");
+            };
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* --------------------------- DRIVE (sin cambios) --------------------------- */
+        /* -------------------------------------------------------------------------- */
 
         function imprimirLista() {
             // ✅ Obtener copia de la tabla
@@ -892,7 +893,52 @@ function borrarDatos() {
                 });
         }
 
+        /* ------------------------------------------------------------- */
+        /*                 ✅ MODO RESPONSIVE PARA CELULAR               */
+        /* ------------------------------------------------------------- */
+        function activarModoMovil() {
+            // Solo aplica si la pantalla es pequeña
+            if (window.innerWidth > 900) return;
 
+            console.log("📱 Modo móvil activado");
+
+            // Contenedor scroll horizontal para tabla
+            const tabla = document.getElementById("tabla");
+            tabla.style.display = "block";
+            tabla.style.overflowX = "auto";
+            tabla.style.whiteSpace = "nowrap";
+
+            // Inputs más grandes
+            document.querySelectorAll("input, select").forEach(el => {
+                el.style.padding = "10px";
+                el.style.fontSize = "15px";
+            });
+
+            // Ajustar tamaño de imagen
+            document.querySelectorAll("img.preview").forEach(img => {
+                img.style.width = "55px";
+                img.style.height = "55px";
+            });
+
+            // Botones más grandes
+            document.querySelectorAll("button").forEach(btn => {
+                btn.style.padding = "10px 16px";
+                btn.style.fontSize = "15px";
+            });
+
+            // Títulos más grandes
+            const h1 = document.querySelector("h1");
+            h1.style.fontSize = "1.4em";
+
+            // Centrar todo
+            document.body.style.padding = "10px";
+        }
+
+        /* ✅ Ejecutar automáticamente al entrar */
+        window.addEventListener("load", activarModoMovil);
+
+        /* ✅ Ejecutar también al rotar el teléfono o cambiar el tamaño */
+        window.addEventListener("resize", activarModoMovil);
 
         cargarListas();
     </script>

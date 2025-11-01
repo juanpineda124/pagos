@@ -214,6 +214,7 @@
         <select id="listaSelect" onchange="cambiarLista()"></select>
         <button onclick="nuevaLista()">➕ Nueva Lista</button>
         <button onclick="eliminarLista()">🗑️ Eliminar Lista</button>
+        <button onclick="renombrarLista()">✏️ Renombrar lista</button>
     </div>
 
     <table id="tabla">
@@ -240,6 +241,9 @@
         <button onclick="guardarDatos()">💾 Guardar</button>
         <button onclick="borrarDatos()">🧹 Borrar registros</button>
         <button onclick="imprimirLista()">🖨️ Imprimir Lista</button>
+        <button onclick="guardarEnDrive()">💾 Guardar en Drive</button>
+        <button onclick="cargarDesdeDrive()">📥 Cargar desde Drive</button>
+
     </div>
 
     <div id="resumen">
@@ -252,6 +256,8 @@
         const tablaBody = document.getElementById("tablaBody");
         const resumen = document.getElementById("resumen");
         const listaSelect = document.getElementById("listaSelect");
+        const URL_DRIVE_API = "https://script.google.com/macros/s/AKfycbztU3w7DqFQN1-eWv4CDnJ3HsBWQrxyD6EGK8mHJE-yMUK6iQlmYV1RNyfMtSIjzhvA/exec";
+
 
         let listas = JSON.parse(localStorage.getItem("listasNombres")) || ["Lista 1"];
         let listaActual = localStorage.getItem("listaActual") || "Lista 1";
@@ -290,6 +296,45 @@
             listaActual = listas[0] || "Lista 1";
             localStorage.setItem("listaActual", listaActual);
             cargarListas();
+        }
+
+        function renombrarLista() {
+            if (!listaActual) return alert("❗ No hay ninguna lista seleccionada.");
+
+            // ✅ Mostrar el nombre actual directamente en el prompt
+            const nuevoNombre = prompt("Editar nombre de la lista:", listaActual);
+
+            if (!nuevoNombre) return; // cancelado o vacío
+
+            if (listas.includes(nuevoNombre) && nuevoNombre !== listaActual) {
+                alert("❗ Ya existe otra lista con ese nombre.");
+                return;
+            }
+
+            // ✅ Actualizar lista en el array
+            const index = listas.indexOf(listaActual);
+            if (index !== -1) {
+                listas[index] = nuevoNombre;
+            }
+
+            // ✅ Mover datos del localStorage
+            const datosViejos = localStorage.getItem("registroArticulos_" + listaActual);
+            if (datosViejos) {
+                localStorage.setItem("registroArticulos_" + nuevoNombre, datosViejos);
+                localStorage.removeItem("registroArticulos_" + listaActual);
+            }
+
+            // ✅ Actualizar selección actual
+            listaActual = nuevoNombre;
+            localStorage.setItem("listaActual", listaActual);
+
+            // ✅ Guardar los nombres modificados
+            localStorage.setItem("listasNombres", JSON.stringify(listas));
+
+            // ✅ Recargar interfaz
+            cargarListas();
+
+            alert("✅ Lista renombrada correctamente.");
         }
 
         function cambiarLista() {
@@ -657,6 +702,115 @@
             ventana.document.close();
             ventana.print();
         }
+
+        function guardarEnDrive() {
+            const datos = {
+                nombre: listaActual,      // nombre del archivo
+                data: obtenerDatosTabla() // tu JSON
+            };
+
+            fetch(URL_DRIVE_API, {
+                method: "POST",
+                body: JSON.stringify(datos)
+            })
+                .then(r => r.text())
+                .then(res => alert("✅ Datos guardados en Drive: " + res))
+                .catch(err => alert("❗ Error: " + err));
+        }
+
+        function obtenerDatosTabla() {
+            const filas = tablaBody.querySelectorAll("tr");
+            const datos = [];
+
+            filas.forEach(fila => {
+                datos.push({
+                    imagen: fila.children[1].querySelector("img")?.src || "",
+                    articulo: fila.children[2].querySelector("input").value,
+                    cantidad: fila.children[3].querySelector("input").value,
+                    precio: fila.children[4].querySelector("input").value,
+                    pago: fila.children[6].querySelector("input").value,
+                    fecha: fila.children[7].querySelector("input").value,
+                    estado: fila.children[9].querySelector("select").value
+                });
+            });
+
+            return datos;
+        }
+
+
+
+        function cargarDesdeDrive() {
+            // 1️⃣ Lista de archivos
+            fetch(URL_DRIVE_API + "?mode=list")
+                .then(r => r.json())
+                .then(json => {
+
+                    if (!json.ok) {
+                        alert("❗ Error al obtener lista: " + json.message);
+                        return;
+                    }
+
+                    const lista = json.archivos;
+
+                    if (!Array.isArray(lista) || lista.length === 0) {
+                        alert("❗ No hay archivos guardados en Drive.");
+                        return;
+                    }
+
+                    // 2️⃣ Menú de selección
+                    const seleccion = prompt(
+                        "📂 Archivos disponibles en Drive:\n\n" +
+                        lista.map((n, i) => `${i + 1}. ${n}`).join("\n") +
+                        "\n\nEscribe el número del archivo que deseas cargar:"
+                    );
+
+                    const index = parseInt(seleccion) - 1;
+
+                    if (isNaN(index) || !lista[index]) {
+                        alert("❗ Selección inválida.");
+                        return;
+                    }
+
+                    const archivoElegido = lista[index];
+
+                    // 3️⃣ CARGAR archivo seleccionado
+                    fetch(URL_DRIVE_API + "?mode=load&file=" + encodeURIComponent(archivoElegido))
+                        .then(r => r.json())
+                        .then(jsonLoad => {
+
+                            if (!jsonLoad.ok) {
+                                alert("❗ Error al cargar: " + jsonLoad.message);
+                                return;
+                            }
+
+                            const datos = jsonLoad.data;
+
+                            if (!Array.isArray(datos)) {
+                                alert("❗ El archivo no contiene datos válidos.");
+                                return;
+                            }
+
+                            // ✅ Limpiar tabla
+                            tablaBody.innerHTML = "";
+
+                            // ✅ Agregar filas
+                            datos.forEach(fila => agregarFila(fila));
+
+                            actualizarNumerosRegistro();
+                            actualizarTotales();
+
+                            alert("✅ Archivo cargado: " + archivoElegido);
+                        })
+                        .catch(err => {
+                            alert("❗ Error de red: " + err);
+                        });
+                })
+                .catch(err => {
+                    alert("❗ Error al obtener lista: " + err);
+                });
+        }
+
+
 
 
         cargarListas();

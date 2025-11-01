@@ -294,7 +294,6 @@
         <button onclick="nuevaLista()">➕ Nueva Lista</button>
         <button onclick="eliminarLista()">🗑️ Eliminar Lista</button>
         <button onclick="renombrarLista()">✏️ Renombrar lista</button>
-        <button onclick="activarModoMovil()">📱 Modo Celular</button>
     </div>
 
     <table id="tabla">
@@ -973,46 +972,6 @@
                 });
         }
 
-        /* ------------------------------------------------------------- */
-        /*                 ✅ MODO RESPONSIVE PARA CELULAR               */
-        /* ------------------------------------------------------------- */
-        function activarModoMovil() {
-            // Solo aplica si la pantalla es pequeña
-            if (window.innerWidth > 900) return;
-
-            console.log("📱 Modo móvil activado");
-
-            // Contenedor scroll horizontal para tabla
-            const tabla = document.getElementById("tabla");
-            tabla.style.display = "block";
-            tabla.style.overflowX = "auto";
-            tabla.style.whiteSpace = "nowrap";
-
-            // Inputs más grandes
-            document.querySelectorAll("input, select").forEach(el => {
-                el.style.padding = "10px";
-                el.style.fontSize = "15px";
-            });
-
-            // Ajustar tamaño de imagen
-            document.querySelectorAll("img.preview").forEach(img => {
-                img.style.width = "55px";
-                img.style.height = "55px";
-            });
-
-            // Botones más grandes
-            document.querySelectorAll("button").forEach(btn => {
-                btn.style.padding = "10px 16px";
-                btn.style.fontSize = "15px";
-            });
-
-            // Títulos más grandes
-            const h1 = document.querySelector("h1");
-            h1.style.fontSize = "1.4em";
-
-            // Centrar todo
-            document.body.style.padding = "10px";
-        }
 
         /* ✅ Ejecutar automáticamente al entrar */
         window.addEventListener("load", activarModoMovil);
